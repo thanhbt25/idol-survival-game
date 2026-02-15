@@ -7,10 +7,36 @@ var ROOMS = [
     {id:'gym', name:'GYM', x:1500, y:1000, w:300, h:300, floor:'#55efc4', wall:'#00b894'}
 ];
 
-var PALETTES = {
-    skin: ['#ffdbac', '#f1c27d', '#e0ac69', '#8d5524', '#c68642'],
-    hair: ['#2f3542', '#a4b0be', '#8b4513', '#eccc68', '#ff6b81', '#1e90ff'],
-    shirt: ['#ff6b81', '#1e90ff', '#feca57', '#2ecc71', '#a29bfe', '#ffffff']
+/* --- CẬP NHẬT BẢNG MÀU (PALETTES) --- */
+// Thêm vào đầu file data.js hoặc game.js
+const PALETTES = {
+    skin: [
+        '#f8d9c6', '#ffcbba', '#f5c5b2', // Light
+        '#eec39a', '#dcb8a3', '#d4a78e', // Medium Light
+        '#c58c85', '#b57c6b', '#a16e5b', // Medium
+        '#8d5524', '#784421', '#613619', // Medium Dark
+        '#4a2812', '#331c0e', '#24130a'  // Dark
+    ],
+    hair: [
+        '#2c3e50', '#34495e', '#7f8c8d', // Black/Grey
+        '#4a2812', '#613619', '#8d5524', // Browns
+        '#d35400', '#e67e22', '#f39c12', // Reds/Gingers
+        '#f1c40f', '#f7dc6f', '#faf0af', // Blondes
+        '#e74c3c', '#c0392b', // Vivid Red
+        '#8e44ad', '#9b59b6', // Purple
+        '#2980b9', '#3498db', // Blue
+        '#27ae60', '#2ecc71', // Green
+        '#ff7675', '#fdcb6e', '#00cec9'  // Pastel/Fun
+    ],
+    shirt: [
+        '#ff6b81', '#ff4757', '#c0392b', // Reds
+        '#feca57', '#f39c12', '#e67e22', // Oranges/Yellows
+        '#55efc4', '#00b894', '#16a085', // Teals/Greens
+        '#48dbfb', '#00cec9', '#0984e3', // Blues
+        '#a29bfe', '#6c5ce7', '#8e44ad', // Purples
+        '#fd79a8', '#e84393', // Pinks
+        '#dfe6e9', '#b2bec3', '#636e72', '#2d3436' // Grays/Black/White
+    ]
 };
 
 var DECOR_TYPES = [

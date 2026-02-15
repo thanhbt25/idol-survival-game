@@ -32,6 +32,7 @@ function resizeGame() {
     console.log("Resized to:", container.clientWidth, "x", container.clientHeight);
 }
 
+
 var Joystick = {
     active: false,
     base: null,
@@ -127,6 +128,13 @@ window.addEventListener('orientationchange', () => {
     // Đợi một chút để trình duyệt cập nhật lại thông số layout rồi mới resize
     setTimeout(resizeGame, 200);
 });
+window.scrollPicker = (id, direction) => {
+    const el = document.getElementById(id);
+    if (el) {
+        // Cuộn 120px (bằng kích thước container) để qua đúng 4 ô mới
+        el.scrollLeft += direction * 120;
+    }
+};
 
 function initGame() {
     showScreen('title-screen'); 
@@ -213,13 +221,51 @@ var Game = {
         let tPool=100;
         let tStats = {...Player.stats};
         
+        // Tìm hàm renderPicker trong Game.startCreation và thay thế:
         const renderPicker = (type, colors) => {
-            const el = document.getElementById(`picker-${type}`); el.innerHTML='';
-            colors.forEach(c => {
-                const b = document.createElement('div');
-                b.className = 'color-btn'; b.style.backgroundColor = c;
-                b.onclick = () => { Player[type] = c; Game.drawPreview(); };
-                el.appendChild(b);
+            const el = document.getElementById(`picker-${type}`);
+            if (!el) return;
+
+            // CHỈ TẠO NÚT NẾU CHƯA CÓ (Tránh re-render gây giật)
+            if (el.children.length === 0) {
+                colors.forEach(c => {
+                    const b = document.createElement('div');
+                    b.className = 'color-btn';
+                    b.style.backgroundColor = c;
+                    
+                    // Gán dữ liệu màu vào nút để dễ tìm sau này
+                    b.dataset.color = c; 
+
+                    b.onclick = () => {
+                        // Cập nhật dữ liệu
+                        Player[type] = c;
+                        
+                        // Cập nhật giao diện (chỉ đổi class active, không vẽ lại)
+                        updatePickerActiveState(type, c);
+                        
+                        // Vẽ lại nhân vậtFa
+                        Game.drawPreview();
+                    };
+                    el.appendChild(b);
+                });
+            }
+            
+            // Luôn cập nhật trạng thái active mỗi khi gọi hàm
+            updatePickerActiveState(type, Player[type] || colors[0]);
+        };
+        const updatePickerActiveState = (type, selectedColor) => {
+            const el = document.getElementById(`picker-${type}`);
+            if (!el) return;
+
+            // Lặp qua tất cả các nút con
+            Array.from(el.children).forEach(btn => {
+                // So sánh màu của nút với màu đang chọn
+                // Lưu ý: style.backgroundColor trả về RGB, nên so sánh tương đối
+                if (btn.dataset.color === selectedColor) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
         };
         renderPicker('skin', PALETTES.skin);
@@ -247,24 +293,64 @@ var Game = {
         };
         
         showScreen('create-screen');
+        setTimeout(() => {
+            Game.drawPreview();
+        }, 100);
     },
 
     drawPreview: () => {
         const canvas = document.getElementById('char-preview');
+        if (!canvas) return;
+
+        // 1. Lấy kích thước hiển thị thực tế của thẻ canvas
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+
         const ctx = canvas.getContext('2d');
-        ctx.clearRect(0,0,100,100);
-        const x = 50, y = 50; const s = 3; 
         
-        ctx.fillStyle = Player.shirt; ctx.fillRect(x-5*s, y+2*s, 10*s, 10*s); 
-        ctx.fillStyle = "#333"; ctx.fillRect(x-3*s, y+12*s, 3*s, 5*s); ctx.fillRect(x+2*s, y+12*s, 3*s, 5*s); 
-        ctx.fillStyle = Player.skin; ctx.fillRect(x-5*s, y-10*s, 10*s, 12*s); 
-        ctx.fillStyle = Player.skin; ctx.fillRect(x-7*s, y+2*s, 2*s, 8*s); ctx.fillRect(x+7*s, y+2*s, 2*s, 8*s); 
-        ctx.fillStyle = "#fff"; ctx.fillRect(x-3*s, y-5*s, 3*s, 3*s); ctx.fillRect(x+2*s, y-5*s, 3*s, 3*s); 
-        ctx.fillStyle = "#000"; ctx.fillRect(x-2*s, y-5*s, 1*s, 3*s); ctx.fillRect(x+3*s, y-5*s, 1*s, 3*s);
-        ctx.fillStyle = Player.hair; 
-        ctx.fillRect(x-6*s, y-12*s, 14*s, 4*s); 
-        ctx.fillRect(x-6*s, y-10*s, 2*s, 10*s); 
-        ctx.fillRect(x+6*s, y-10*s, 2*s, 10*s); 
+        // 2. Sử dụng màu đã chọn, hoặc màu mặc định nếu chưa có
+        const skin = Player.skin || PALETTES.skin[0];
+        const hair = Player.hair || PALETTES.hair[0];
+        const shirt = Player.shirt || PALETTES.shirt[0];
+
+        const x = canvas.width / 2;
+        const y = canvas.height / 2 + 5; // Dịch xuống xíu cho cân
+        // Tự tính tỉ lệ scale (s) dựa trên chiều cao canvas
+        const s = Math.floor(canvas.height / 32); 
+
+        // --- BẮT ĐẦU VẼ (Thứ tự lớp quan trọng!) ---
+
+        // Lớp 1: Bóng & Thân
+        ctx.fillStyle = "rgba(0,0,0,0.1)";
+        ctx.beginPath(); ctx.ellipse(x, y + (5*s), 6*s, 3*s, 0, 0, Math.PI * 2); ctx.fill(); // Bóng
+
+        ctx.fillStyle = "#2c3e50"; // Chân
+        ctx.fillRect(x - 3*s, y + 4*s, 2.5*s, 4*s);
+        ctx.fillRect(x + 0.5*s, y + 4*s, 2.5*s, 4*s);
+
+        ctx.fillStyle = shirt; // Áo
+        ctx.fillRect(x - 4*s, y - 2*s, 8*s, 7*s);
+
+        // Lớp 2: Đầu & Tay
+        ctx.fillStyle = skin;
+        ctx.fillRect(x - 6*s, y - 1*s, 2*s, 5*s); // Tay trái
+        ctx.fillRect(x + 4*s, y - 1*s, 2*s, 5*s); // Tay phải
+        ctx.fillRect(x - 5*s, y - 11*s, 10*s, 10*s); // Đầu
+
+        // Lớp 3: MẮT (Vẽ trước tóc để không bị che)
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(x - 3*s, y - 7*s, 2.5*s, 3*s);
+        ctx.fillRect(x + 1*s, y - 7*s, 2.5*s, 3*s);
+        
+        ctx.fillStyle = "#000";
+        ctx.fillRect(x - 2*s, y - 6*s, 1*s, 2*s);
+        ctx.fillRect(x + 2*s, y - 6*s, 1*s, 2*s);
+
+        // Lớp 4: TÓC (Vẽ cuối cùng)
+        ctx.fillStyle = hair;
+        ctx.fillRect(x - 6*s, y - 13*s, 12*s, 4*s); // Mái trên
+        ctx.fillRect(x - 6*s, y - 11*s, 2*s, 7*s);  // Tóc mai trái
+        ctx.fillRect(x + 4*s, y - 11*s, 2*s, 7*s);  // Tóc mai phải
     },
     
     reset: () => {
@@ -274,7 +360,64 @@ var Game = {
         Player.stats = {dance:20,vocal:20,rap:20,visual:20,charisma:20,stamina:50};
     },
 
-toggleSettings: () => {
+    toggleMusicSource: (type) => {
+        const fileArea = document.getElementById('source-file-area');
+        const urlArea = document.getElementById('source-url-area');
+        const btnFile = document.getElementById('tab-file');
+        const btnUrl = document.getElementById('tab-url');
+
+        if (type === 'file') {
+            fileArea.style.display = 'block';
+            urlArea.style.display = 'none';
+            btnFile.style.background = '#2f3542'; btnFile.style.color = '#fff';
+            btnUrl.style.background = '#ccc'; btnUrl.style.color = '#000';
+        } else {
+            fileArea.style.display = 'none';
+            urlArea.style.display = 'block';
+            btnFile.style.background = '#ccc'; btnFile.style.color = '#000';
+            btnUrl.style.background = '#2f3542'; btnUrl.style.color = '#fff';
+        }
+    },
+
+    // Xử lý khi chọn file từ máy
+    handleSongUpload: (input) => {
+        const file = input.files[0];
+        if (file) {
+            // Tạo URL ảo cho file vừa chọn
+            const objectUrl = URL.createObjectURL(file);
+            Game.previewSong(objectUrl, file.name);
+        }
+    },
+
+    // Xử lý khi nhập Link
+    loadSongFromUrl: () => {
+        const url = document.getElementById('song-url-input').value;
+        if (url && url.length > 5) {
+            Game.previewSong(url, "Linked Song");
+        } else {
+            alert("Please enter a valid URL!");
+        }
+    },
+
+    // Hàm chung để xử lý nhạc sau khi có nguồn
+    previewSong: (src, name) => {
+        // Hiển thị tên bài hát
+        const display = document.getElementById('song-name-display');
+        display.innerText = "SELECTED: " + name;
+        
+        // Lưu nguồn nhạc vào biến global của Stage
+        Stage.audioSource = src; 
+        
+        // Hiển thị phần chọn Concept
+        document.getElementById('concept-selector').style.display = 'block';
+        
+        // Reset các nút chọn cũ
+        document.querySelectorAll('.concept-btn').forEach(b => b.style.background = '#eee');
+        document.querySelectorAll('.diff-btn').forEach(b => b.style.background = '#eee');
+        document.getElementById('stage-start-btn').style.display = 'none';
+    },
+
+    toggleSettings: () => {
         if (App.screen === 'title-screen') return;
         App.paused = !App.paused; 
 
@@ -829,26 +972,38 @@ toggleSettings: () => {
             b.style.marginTop = '5px';
 
             b.onclick = () => {
+                // 1. Xử lý logic điểm số (Giữ nguyên logic cũ của bạn)
                 if (opt.originalIndex === 0) {
-                    RelManager.update(npc, 5)
+                    RelManager.update(npc, 5);
                     Player.teamwork += 0.5;
                     let fanBonus = 50 + Player.stats.charisma;
                     Player.fans += fanBonus;
                     Notify.show(`👍 ${npc.name.split(' ')[0]} liked that! (+5 Rel, +0.5 Team)`);
-                }
-                else if (opt.originalIndex === 2) {
+                } else if (opt.originalIndex === 2) {
                     RelManager.update(npc, -5);
-                    Player.teamwork -= 0.5; 
-                    let fanBonus = -50; 
-                    Player.fans += fanBonus; 
+                    Player.teamwork -= 0.5;
+                    let fanBonus = -50;
+                    Player.fans += fanBonus;
                     let label = RelManager.getStatusLabel(npc.relationship);
-                    Notify.show(`👎 ${npc.name.split(' ')[0]} is disappointed...\n(-3 Rel, -0.5 Team, -50 Fans)\n(Status: ${label})`);
-                }
-                else {
+                    Notify.show(`👎 ${npc.name.split(' ')[0]} disappointed... (-3 Rel, -0.5 Team)`);
+                } else {
                     Notify.show("😐 Just a normal conversation.");
                 }
-                updateUI();
-                HubMap.closeInteraction();
+
+                updateUI(); // Cập nhật giao diện điểm số
+
+                // 2. [QUAN TRỌNG] Đóng bảng hội thoại ngay lập tức
+                // Gọi hàm closeInteraction của HubMap thay vì tự ẩn thủ công để đảm bảo logic chạy lại
+                if (typeof HubMap !== 'undefined' && HubMap.closeInteraction) {
+                    HubMap.closeInteraction(); 
+                } else {
+                    // Fallback nếu HubMap chưa load kịp (dù hiếm khi xảy ra)
+                    document.getElementById('interaction-modal').style.display = 'none';
+                    if (typeof HubMap !== 'undefined') {
+                        HubMap.run = true; 
+                        HubMap.loop();
+                    }
+                }
             };
             optsContainer.appendChild(b);
         });

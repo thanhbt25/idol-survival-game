@@ -99,3 +99,41 @@ function updateUI() {
     document.getElementById('day-counter').innerText = App.day;
     document.getElementById('display-name').innerText = Player.name.toUpperCase();
 }
+
+function drawFace(ctx, x, y, char, scale = 1) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    // 1. Bóng đổ
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.fillRect(-3, -3, 14, 14); 
+
+    // 2. Tóc sau
+    ctx.fillStyle = char.hair || "#333"; 
+    ctx.fillRect(-6, -6, 12, 12);
+
+    // 3. Áo
+    ctx.fillStyle = char.shirt || "#ff7675";
+    ctx.fillRect(-5, 6, 10, 4);
+
+    // 4. Mặt
+    ctx.fillStyle = char.skin || "#ffeaa7";
+    ctx.fillRect(-5, -5, 10, 10); 
+
+    // 5. Tóc mái & Tóc mai
+    ctx.fillStyle = char.hair || "#333";
+    ctx.fillRect(-6, -7, 12, 4);
+    ctx.fillRect(-6, -5, 2, 7);
+    ctx.fillRect(4, -5, 2, 7);
+
+    // 6. Mắt
+    ctx.fillStyle = "#fff"; ctx.fillRect(-3, -2, 3, 3); ctx.fillRect(1, -2, 3, 3);
+    ctx.fillStyle = "#2d3436"; ctx.fillRect(-2, -2, 2, 3); ctx.fillRect(2, -2, 2, 3);
+
+    // 7. Má hồng & Miệng
+    ctx.fillStyle = "rgba(255, 107, 129, 0.6)"; ctx.fillRect(-4, 1, 2, 1); ctx.fillRect(3, 1, 2, 1);
+    ctx.fillStyle = "#d63031"; ctx.fillRect(-1, 2, 3, 1); 
+
+    ctx.restore();
+}

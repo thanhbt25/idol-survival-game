@@ -7,34 +7,41 @@ button { pointer-events: auto; }
     --perfect: #00b894; --good: #0984e3; --bad: #fdcb6e; --miss: #d63031;
     --game-ratio: 16 / 9;
 }
+.nav-arrow {
+    display: none;
+}
 * { box-sizing: border-box; }
 body {
     font-family: 'Press Start 2P', cursive;
-    background-color: var(--bg-sky);
-    background-image: 
-        radial-gradient(circle, #fff 10%, transparent 10%),
-        radial-gradient(circle, #fff 10%, transparent 10%);
-    background-size: 40px 40px;
-    background-position: 0 0, 20px 20px;
-    margin: 0; overflow: hidden; padding: 0;
-    display: flex; justify-content: center; align-items: center; height: 100vh;
-    user-select: none; image-rendering: pixelated;
-}
-#game-container {
+    background-color: #000; 
+    background-image: none; 
+    margin: 0; 
+    padding: 0;
+    overflow: hidden; 
     width: 100vw;
-    height: 100vh; /* Tự động tính chiều cao theo 16:9 */
-    height: 100dvh;
-    max-height: 100vh;
-    max-width: calc(100vh * (16 / 9)); /* Đảm bảo không tràn màn hình dọc */
+    height: 100vh;
+    user-select: none;
+    touch-action: none; 
+}
+
+#game-container {
+    width: 100%;
+    height: 100%;
+    
+    max-width: none;
+    max-height: none;
     
     background: var(--panel);
     border: none;
     border-radius: 0;
-    position: relative;
-    overflow: hidden;
+    
+    position: absolute; 
+    top: 0;
+    left: 0;
+    
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: none;
 }
 
 .screen {
@@ -68,15 +75,37 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 
 /* CREATION SCREEN */
 #create-box {
-    background: #fff; border: 4px solid #2f3542; padding: 20px;
-    border-radius: 10px; display: flex; flex-direction: column; align-items: center;
-    width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+    background: #fff; 
+    border: 4px solid #2f3542; 
+    padding: 15px;
+    border-radius: 10px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    width: 95%; 
+    max-width: 800px; /* Tăng chiều rộng để dàn hàng ngang */
+    max-height: 95vh; 
+    overflow-y: auto;
 }
 
-.creation-cols { display: flex; gap: 20px; width: 100%; justify-content: center; flex-wrap: wrap; }
-.creation-left { flex: 1; min-width: 200px; }
-.creation-right { flex: 1; min-width: 200px; display: flex; flex-direction: column; align-items: center; }
-
+/* Dàn hàng ngang cho PC và Mobile Landscape */
+.creation-cols { 
+    display: flex; 
+    gap: 15px; 
+    width: 100%; 
+    justify-content: center; 
+    flex-wrap: nowrap; /* Ưu tiên nằm ngang */
+}
+.creation-left { flex: 1.2; }
+.creation-right { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 8px;
+}
 #stats-inputs { display: flex; flex-direction: column; gap: 8px; width: 100%; margin: 10px 0; }
 .stat-row {
     display: flex; justify-content: space-between; align-items: center;
@@ -92,7 +121,14 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 .stat-val { min-width: 25px; text-align: center; font-weight: bold; }
                         
 /* Character Preview */
-#char-preview { width: 100px; height: 100px; border: 4px solid #2f3542; background: #eee; margin-bottom: 10px; image-rendering: pixelated; }
+#char-preview { 
+    width: 140px; 
+    height: 140px; 
+    border: 3px solid #2f3542; 
+    background: #fff; 
+    margin-bottom: 8px; 
+    image-rendering: pixelated; 
+}
 .color-picker-row { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; justify-content: center; }
 .color-btn { width: 20px; height: 20px; border: 2px solid #fff; box-shadow: 2px 2px 0 #000; cursor: pointer; }
 .color-btn:hover { transform: scale(1.1); }
@@ -190,10 +226,11 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 #stage-ui { display: flex; width: 100%; height: 100%; background: #2c2c54; justify-content: center; } 
 .side-panel { width: 180px; background: #f1f2f6; border-right: 4px solid #2f3542; color: #2f3542; padding: 10px; display: flex; flex-direction: column; }
 #main-stage { width: 500px; background: #191936; position: relative; border-left: 4px solid #2f3542; border-right: 4px solid #2f3542; } 
+
 canvas {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain; 
+    display: block;
+    width: 100%;
+    height: 100%;
 }
         
 #score-hud { position: absolute; top: 20px; width: 100%; text-align: center; color: #fff; font-size: 20px; text-shadow: 2px 2px 0 var(--primary); pointer-events: none; }
@@ -487,6 +524,17 @@ canvas {
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+/* 1. Mặc định là để JS tự quyết định (không ép !important) */
+#interaction-modal {
+    display: none; /* Mặc định ẩn */
+}
+
+/* 2. Chỉ khi JS bật nó lên (thêm style="display: block"), ta mới ép nó thành flex */
+#interaction-modal[style*="display: block"] {
+    display: flex !important;
+    flex-direction: column !important;
+}
+
 /* Chỉ hiện khi màn hình dọc trên mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
     
@@ -527,7 +575,6 @@ canvas {
         margin: 2px 0 !important;
     }
 
-    /* 3. Sửa màn hình tạo nhân vật (Create Screen - Ảnh 3 bạn gửi) */
     #create-box {
         width: 70% !important; /* Đừng để quá rộng */
         max-height: 95vh !important; /* Gần full chiều cao */
@@ -571,16 +618,7 @@ canvas {
         border-width: 2px !important;
     }
     
-    .color-picker-row { margin-bottom: 2px !important; }
-    .color-btn { width: 15px !important; height: 15px !important; }
     .color-label { font-size: 6px !important; margin-bottom: 2px !important; }
-
-    /* 4. Sửa Minigame (Ảnh 1) */
-    #minigame-canvas-container {
-        width: 50vw !important; /* Chỉ chiếm 50% chiều ngang màn hình */
-        height: 70vh !important; /* Chiếm 70% chiều cao */
-        border-width: 2px !important;
-    }
     
     /* Joystick nhỏ lại một chút và lùi vào góc */
     #joystick-base {
@@ -593,5 +631,813 @@ canvas {
         width: 30px !important;
         height: 30px !important;
     }
+
+    #npc-intro-screen > div {
+        width: 98% !important; 
+        height: 98% !important;
+        padding: 5px !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    #npc-intro-screen h2 {
+        font-size: 14px !important; /* Tăng nhẹ tiêu đề 30 TRAINEES */
+        margin: 5px 0 !important;
+    }
+
+    /* 2. Lưới hiển thị (Grid): Tăng kích thước cột để thẻ to hơn */
+    #npc-list-grid {
+        display: grid !important;
+        /* Ép đúng 5 cột mỗi dòng */
+        grid-template-columns: repeat(5, 1fr) !important; 
+        gap: 5px !important;
+        padding: 5px !important;
+        overflow-y: auto !important; 
+    }
+
+    /* 2. Lưới hiển thị Ranking (image_c8f27d.png) */
+    /* Giả sử id container của bảng xếp hạng là #ranking-grid hoặc tương đương */
+    #ranking-list {
+        display: grid !important;
+        grid-template-columns: repeat(5, 1fr) !important; /* Hiện tại đang là 4, đổi thành 5 */
+        gap: 5px !important;
+        padding: 10px !important;
+    }
+
+    /* 3. Thẻ Nhân Vật (Rank Card): Phóng to layout */
+    .rank-card {
+        height: auto !important;
+        min-height: 140px !important; /* Tăng từ 90px để chứa đủ text chỉ số */
+        width: auto !important;
+        padding: 6px !important;
+        border-width: 2px !important; /* Viền dày hơn cho rõ pixel art */
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+    }
+
+    /* Phóng to Avatar NPC */
+    .rank-card > div:first-child { 
+        width: 30px !important;  /* Tăng từ 15px */
+        height: 30px !important; 
+        margin: 5px auto !important;
+    }
+    /* Chỉnh lại tóc của nhân vật trong thẻ */
+    .rank-card > div:first-child > div { height: 6px !important; }
+
+    /* Phóng to Tên & Role */
+    .rank-card div:nth-child(2) { 
+        font-size: 10px !important; /* Tên NPC */
+        margin: 3px 0 !important;
+        font-weight: bold !important;
+    } 
+    .rank-card div:nth-child(3) { 
+        font-size: 8px !important; /* Role: Vocal, Dance... */
+        margin-bottom: 5px !important;
+    }
+
+    /* 4. Bảng chỉ số (Voc, Dan, Rap, Wis, Cha): Quan trọng nhất */
+    .rank-card div:last-child {
+        font-size: 8px !important; /* Tăng từ 5px lên 8px cho dễ đọc */
+        padding: 4px !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-radius: 4px !important;
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 3px !important;
+        line-height: 1.2 !important;
+    }
+
+    /* 5. Nút "ENTER DORM" */
+    #npc-intro-screen button {
+        padding: 8px 25px !important;
+        font-size: 12px !important;
+        margin: 5px 0 !important;
+        align-self: center !important;
+    }
+
+    #minigame-screen h2 {
+        display: none; 
+    }
+    
+    #minigame-canvas-container {
+        width: 90vw !important; /* Chiếm 90% chiều ngang màn hình */
+        height: 90vh !important; /* Chiếm 90% chiều cao màn hình */
+        max-width: 600px !important; /* Giới hạn lại chút để không bị dài ngoằng trên máy to */
+        margin: 2vh auto !important; /* Căn giữa */
+        border-width: 3px !important;
+    }
+
+    /* 2. Chỉnh lại giao diện Hướng dẫn (Tutorial) bên trong */
+    #mg-tutorial {
+        padding: 10px !important;
+        justify-content: center !important;
+    }
+
+    /* Icon (Cánh tay, Micro...) - Cho to lên */
+    #mg-tutorial > div:first-child { 
+        font-size: 35px !important; 
+        margin-bottom: 5px !important;
+    }
+
+    /* Tiêu đề (GYM TRAINING) */
+    #mg-tutorial h2 {
+        display: block !important;
+        font-size: 14px !important; /* Tăng cỡ chữ tiêu đề */
+        margin-bottom: 10px !important;
+        color: #feca57 !important;
+    }
+
+    /* Hộp nội dung văn bản hướng dẫn */
+    #mg-tutorial > div:nth-child(3) {
+        font-size: 11px !important; /* Tăng từ 8px lên 11px cho dễ đọc */
+        line-height: 1.6 !important; /* Giãn dòng ra cho thoáng */
+        padding: 10px !important;
+        margin-bottom: 10px !important;
+        width: 95% !important;
+        background: rgba(255,255,255,0.15) !important;
+        border: 2px solid #fff !important;
+        border-radius: 8px !important;
+        text-align: left !important;
+    }
+    
+    /* Khoảng cách các dòng chữ */
+    #mg-tutorial p {
+        margin: 5px 0 !important;
+    }
+
+    /* Nút "I'M READY" - Làm to, dễ bấm */
+    #btn-tut-start {
+        font-size: 12px !important;
+        padding: 10px 30px !important;
+        border-radius: 5px !important;
+        border-bottom-width: 4px !important;
+        background: #00b894 !important;
+        color: #fff !important;
+        cursor: pointer !important;
+    }
+
+    /* Thông tin phụ bên dưới (TRAINING: EASY) */
+    #minigame-info {
+        font-size: 10px !important;
+        margin-top: 5px !important;
+        color: #aaa !important;
+    }
+    
+    /* Nút EXIT */
+    #minigame-screen > button {
+        padding: 5px 15px !important;
+        font-size: 10px !important;
+        margin-top: 5px !important;
+    }
+
+    /* 1. Khung bao ngoài (Màu vàng nhạt) */
+    #rel-screen .result-box {
+        width: 95% !important;
+        height: 90% !important;
+        padding: 5px !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Tiêu đề "RELATIONSHIP CHART" */
+    #rel-screen h2 {
+        font-size: 10px !important;
+        margin: 2px 0 5px 0 !important;
+    }
+
+    /* 2. Lưới hiển thị (Grid) */
+    /* 1. Lưới hiển thị: Tăng kích thước cột và hàng */
+    #rel-list-grid {
+        display: grid !important;
+        /* Tăng chiều rộng tối thiểu cột từ 60px lên 100px -> Thẻ to gấp đôi */
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+        
+        /* Tăng chiều cao hàng từ 80px lên 130px */
+        grid-auto-rows: 130px !important;
+        
+        gap: 8px !important;
+        padding: 5px !important;
+        overflow-y: auto !important; /* Cho phép cuộn */
+        flex-grow: 1 !important;
+    }
+
+    /* 2. Thẻ quan hệ: Căn chỉnh lại nội dung */
+    .rel-card {
+        height: 100% !important;
+        width: 100% !important;
+        padding: 5px !important;
+        border-width: 2px !important;
+        border-radius: 8px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly !important; /* Chia đều khoảng cách */
+        align-items: center;
+    }
+
+    /* 3. Avatar nhân vật (To hơn) */
+    .rel-card > div:first-child {
+        width: 30px !important;  /* Tăng từ 12px lên 30px */
+        height: 30px !important;
+        margin-bottom: 5px !important;
+    }
+    .rel-card > div:first-child > div { height: 6px !important; } /* Tóc dày hơn */
+
+    /* 4. Tên nhân vật */
+    .rel-card div:nth-child(2) {
+        font-size: 10px !important; /* Tăng từ 6px lên 10px */
+        margin-bottom: 2px !important;
+        font-weight: bold !important;
+    }
+
+    /* 5. Điểm số (Màu đỏ) */
+    .rel-score {
+        font-size: 12px !important; /* Tăng từ 8px lên 12px */
+        margin: 2px 0 !important;
+    }
+
+    /* 6. Trạng thái (ACQUAINTANCE...) */
+    .rel-status {
+        font-size: 7px !important; /* Tăng từ 4px lên 7px cho dễ đọc */
+        padding: 4px 6px !important;
+        border-radius: 4px !important;
+        max-width: 95% !important;
+    }
+
+    /* 4. Nút CLOSE bên dưới */
+    #rel-screen > button {
+        padding: 4px 15px !important;
+        font-size: 8px !important;
+        margin-top: 5px !important;
+        height: 25px !important;
+        align-self: center !important;
+    }
+
+    button[onclick="Game.showRelList()"], 
+    button[onclick="Game.toggleSettings()"] {
+        width: 110px !important;   /* Độ rộng bằng nhau */
+        height: 28px !important;   /* Chiều cao bằng nhau */
+        
+        font-size: 8px !important; /* Cỡ chữ nhỏ để vừa 1 dòng */
+        padding: 0 5px !important; /* Padding 2 bên */
+        
+        /* Căn giữa chữ */
+        display: flex !important;
+        align-items: center !important; 
+        justify-content: center !important;
+        
+        /* QUAN TRỌNG: Cấm xuống dòng */
+        white-space: nowrap !important; 
+        
+        left: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Đặt vị trí nút Relations (Ở trên) */
+    button[onclick="Game.showRelList()"] {
+        top: 10px !important;
+        /* Nếu chữ vẫn bị to, giảm font riêng nút này xuống xíu */
+        /* font-size: 7px !important; */ 
+    }
+
+    /* Đặt vị trí nút Settings (Ở dưới) */
+    button[onclick="Game.toggleSettings()"] {
+        top: 45px !important; /* Cách nút trên khoảng 5-7px (10 + 28 + 7 = 45) */
+    }
+
+    #settings-overlay .result-box {
+        width: 50% !important;  /* Chỉ chiếm 50% màn hình thay vì full */
+        height: auto !important; /* Chiều cao tự co giãn theo nội dung */
+        max-height: 90% !important;
+        padding: 10px !important; /* Giảm padding */
+        
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 2. Tiêu đề "PAUSED" */
+    #settings-overlay h1 {
+        font-size: 16px !important; /* Giảm font chữ tiêu đề */
+        margin: 5px 0 10px 0 !important;
+    }
+
+    /* 3. Label "AUDIO SETTINGS" */
+    #settings-overlay label {
+        font-size: 8px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* 4. Các khung chứa nút bấm */
+    #settings-overlay > .result-box > div {
+        width: 100% !important;
+        margin: 2px 0 !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 5. Chỉnh lại các nút bấm (BGM, RESUME, QUIT) */
+    #settings-overlay button {
+        width: 70% !important; /* Nút gọn lại, không bè ra 2 bên */
+        height: 25px !important; /* Chiều cao nút cố định nhỏ */
+        padding: 0 !important;
+        font-size: 8px !important;
+        margin: 3px 0 !important; /* Khoảng cách giữa các nút */
+        
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #interaction-modal {
+        /* 1. Mở rộng chiều ngang để tận dụng 2 bên */
+        width: 90% !important; 
+        max-width: none !important; /* Bỏ giới hạn chiều rộng cũ */
+        
+        /* 2. Ép chiều cao và vị trí */
+        height: auto !important;
+        bottom: 10px !important; /* Sát mép dưới */
+        top: auto !important;    /* Bỏ căn giữa dọc */
+        
+        /* 3. Giao diện bên trong */
+        padding: 5px 10px !important;
+        /* display: flex !important; */
+        flex-direction: column !important;
+        align-items: flex-start !important; /* Căn nội dung sang trái */
+    }
+
+    /* Tên nhân vật */
+    #dialogue-npc-name {
+        font-size: 10px !important;
+        margin: 2px 0 !important;
+        color: var(--primary) !important;
+        text-align: left !important;
+        width: 100%;
+    }
+
+    /* Nội dung lời thoại */
+    #dialogue-text {
+        font-size: 9px !important;
+        line-height: 1.3 !important;
+        margin: 0 0 5px 0 !important;
+        text-align: left !important;
+        width: 100%;
+    }
+
+    /* Khu vực các nút bấm */
+    #dialogue-options {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: row !important; /* QUAN TRỌNG: Xếp nút nằm ngang */
+        gap: 5px !important;
+        justify-content: space-between !important;
+    }
+
+    /* Các nút lựa chọn */
+    #dialogue-options button {
+        flex: 1 !important; /* Chia đều chiều rộng cho 3 nút */
+        width: auto !important; /* Ghi đè style inline cũ */
+        margin: 0 !important;
+        padding: 6px 2px !important;
+        font-size: 7px !important;
+        
+        /* Xử lý text trong nút */
+        white-space: normal !important; /* Cho phép xuống dòng nếu chữ dài */
+        line-height: 1.1 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: auto !important;
+        min-height: 25px !important;
+    }
+
+    #char-preview {
+        width: 140px !important;  /* Tăng kích thước hiển thị */
+        height: 140px !important;
+        border-width: 3px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .color-label {
+        font-size: 7px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Điều chỉnh lại layout Create Box để chứa đủ Preview to */
+    #create-box {
+        flex-direction: row !important;
+        align-items: center !important;
+        padding: 10px !important;
+    }
+
+    .color-picker-container {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 5px;
+        margin-bottom: 5px;
+    }
+
+    .color-picker-row {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        
+        /* Cố định chiều rộng: 4 ô (25px) + 3 gap (5px) + 2 padding bên (5px) = 125px */
+        width: 125px !important; 
+        max-width: 125px !important;
+        
+        /* QUAN TRỌNG: Căn trái để ô đầu tiên không bị đẩy ra ngoài */
+        justify-content: flex-start !important; 
+        
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        
+        gap: 5px !important;
+        
+        /* Đệm 2 đầu để ô đầu và ô cuối không dính lề */
+        padding: 0 2px !important; 
+        
+        margin: 0 !important;
+        
+        /* Giữ layout cố định */
+        box-sizing: border-box !important;
+        scroll-behavior: smooth;
+        
+        scroll-snap-type: x mandatory; 
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Thêm class này để xử lý trạng thái đang chọn */
+    .color-btn.active {
+        border: 2px solid #000 !important; /* Viền đen đậm */
+        transform: scale(0.9); /* Thu nhỏ xíu để không làm vỡ khung */
+    }
+
+    /* Đảm bảo nút màu luôn cứng kích thước */
+    .color-btn {
+        width: 25px !important;
+        height: 25px !important;
+        min-width: 25px !important;
+        flex-shrink: 0 !important;
+        border: 1px solid #fff !important;
+        border-radius: 2px !important;
+        scroll-snap-align: start; 
+        box-sizing: border-box !important; /* Quan trọng để viền không làm to nút */
+    }
+
+    /* Nút mũi tên điều hướng */
+    .nav-arrow {
+        background: #2f3542 !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 5px !important;
+        width: 25px !important;
+        height: 25px !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 10px !important;
+        flex-shrink: 0;
+        border-radius: 4px;
+    }
+
+    .nav-arrow:active {
+        transform: scale(0.9);
+    }
+    
+    .color-section {
+        width: 100% !important;
+        margin-bottom: 5px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+    .picker-container {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 200px !important; /* Độ rộng cố định cho 4 màu + 2 nút */
+        margin: 0 auto !important;
+        gap: 5px !important;
+    }
+
+    #ranking-list .rank-card {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;     /* Căn giữa các div con theo chiều ngang */
+        justify-content: center !important;  /* Căn giữa các div con theo chiều dọc */
+        text-align: center !important;
+        padding: 5px !important;
+        box-sizing: border-box !important;
+    }
+
+    #ranking-list .rank-card > div {
+        width: 100% !important;             /* QUAN TRỌNG: Div con phải rộng 100% thì text-align mới có tác dụng */
+        text-align: center !important;       /* Ép chữ bên trong div ra chính giữa */
+        margin: 0 !important;                /* Xóa các margin mặc định có thể gây lệch */
+    }
+
+    #ranking-list .rank-card > div:first-child {
+        font-size: 18px !important;    
+        font-weight: bold !important;  
+        color: #2f3542 !important;     
+        margin-bottom: 4px !important;       /* Chỉ giữ lại margin dưới để tạo khoảng cách với tên */
+        text-shadow: 1px 1px 0px #fff; 
+        line-height: 1 !important;           /* Giúp căn giữa theo chiều dọc chuẩn hơn */
+    }
+
+    /* Thu nhỏ nhẹ tên NPC để cân bằng lại layout */
+    #ranking-list .rank-card div:nth-child(2) {
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Điểm số (ví dụ: 9.3k) */
+    #ranking-list .rank-card div:last-child {
+        font-size: 11px !important;
+        font-weight: bold !important;
+        color: #e67e22 !important; /* Màu cam đặc trưng cho điểm số */
+    }
+
+    /* --- CẤU HÌNH LẠI MÀN HÌNH TEAM SELECTION (DRAFT) --- */
+
+    /* 1. Ẩn luôn tiêu đề "TEAM SELECTION" vì trong khung đã có chữ "TEAM DRAFT" rồi */
+    /* Việc này giúp tiết kiệm khoảng 30-40px chiều cao quý giá */
+    #draft-title {
+        display: none !important; 
+    }
+
+    /* 2. Mở rộng khung hình ảnh lên tối đa (85% màn hình) */
+    #draft-visual {
+        width: 98% !important;        /* Mở rộng bề ngang */
+        height: 85vh !important;      /* Chiếm 85% chiều cao màn hình */
+        margin: 5px auto !important;  /* Căn giữa gọn gàng */
+        border-width: 3px !important;
+        background: #dfe6e9 !important;
+        
+        /* Đảm bảo canvas bên trong không bị méo */
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 3. Canvas ép full khung */
+    #draftCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        display: block !important;
+    }
+
+    /* 4. Dòng trạng thái nhỏ gọn bên dưới */
+    #draft-status {
+        font-size: 8px !important;
+        margin: 2px 0 !important;
+        position: absolute;
+        bottom: 5px;
+        right: 10px;
+        background: rgba(255,255,255,0.8);
+        padding: 2px 5px;
+        border-radius: 4px;
+        z-index: 10;
+    }
+
+    /* 5. Nút START COMPETITION: Nổi bật ở góc hoặc dưới đáy */
+    #btn-start-event {
+        position: absolute !important;
+        bottom: 10px !important; /* Đặt đè lên góc dưới của màn hình */
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 20 !important;
+        
+        padding: 10px 30px !important;
+        font-size: 14px !important;
+        background: #ff6b81 !important; 
+        color: #fff !important;
+        border: 2px solid #fff !important;
+        box-shadow: 0 4px 0 #2f3542 !important;
+    }
+
+    #comp-screen {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Khung chứa Canvas không bị tràn */
+    #comp-canvas-wrapper {
+        width: 85vw !important;
+        height: 85vh !important;
+        margin: 0 auto !important;
+        border: 2px solid #fff !important;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
+    }
+
+    /* 2. Giao diện Kết quả: Chia đôi màn hình (Trái/Phải) */
+    .res-layout {
+        display: flex !important;
+        flex-direction: row !important; /* Xếp ngang */
+        width: 95% !important;
+        height: 80% !important;
+        align-items: center !important;
+        gap: 15px !important;
+    }
+
+    /* Bên Trái: Bảng Xếp Hạng */
+    .res-left {
+        flex: 2 !important; /* Chiếm 2/3 màn hình */
+        height: 100% !important;
+        overflow-y: auto !important;
+        border: 2px solid #2f3542 !important;
+        background: #fff !important;
+        border-radius: 8px !important;
+        padding: 5px !important;
+    }
+
+    /* Bên Phải: Điểm số & Nút bấm */
+    .res-right {
+        flex: 1 !important; /* Chiếm 1/3 màn hình */
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        height: 100% !important;
+    }
+
+    /* Tinh chỉnh nút bấm cho gọn */
+    .res-btn {
+        width: 100% !important;
+        padding: 10px 0 !important;
+        font-size: 10px !important;
+        margin-top: 10px !important;
+    }
+
+    /* Thu nhỏ tiêu đề để không chiếm chỗ */
+    #round-result-overlay h2, 
+    #comp-result-overlay h1 {
+        font-size: 14px !important;
+        margin-bottom: 5px !important;
+        margin-top: 0 !important;
+    }
+
+    /* Sửa lại cái khung chứa canvas bên trong */
+    #comp-screen > div:first-of-type {
+        width: 90% !important; 
+        height: 80% !important; /* Thay vì 450px cố định, hãy dùng % */
+        max-height: 500px; /* Giới hạn tối đa để không quá to */
+        margin: 0 !important; /* Bỏ margin auto cũ */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #room-notification {
+        position: fixed !important;      /* Luôn cố định theo màn hình, không theo Map */
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        
+        width: 85% !important;           /* Chiếm 85% chiều ngang màn hình */
+        max-width: 400px !important;
+        height: auto !important;
+        max-height: 90vh !important;     /* Không cao quá 90% màn hình */
+        
+        overflow-y: auto !important;     /* Cho phép cuộn nếu nội dung quá dài */
+        z-index: 5000 !important;        /* Luôn nổi lên trên cùng */
+        
+        background: #fff !important;
+        border: 4px solid #2f3542 !important;
+        border-radius: 10px !important;
+        padding: 15px !important;
+        box-shadow: 0 0 0 1000px rgba(0,0,0,0.6) !important; /* Làm tối nền đằng sau */
+    }
+
+    /* Tinh chỉnh nút chọn file cho to dễ bấm */
+    #stage-setup-area button {
+        padding: 12px !important;
+        margin-top: 5px !important;
+        font-size: 10px !important;
+    }
+
+    #stage-detail-overlay {
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        background: rgba(0,0,0,0.85) !important;
+    }
+
+    /* Tiêu đề STAGE CLEAR */
+    #stage-detail-overlay h1 {
+        position: absolute;
+        top: 10px;
+        font-size: 24px !important;
+        margin: 0 !important;
+        z-index: 10;
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Khung chứa nội dung kết quả */
+    #stage-detail-content {
+        width: 85vw !important;
+        height: 75vh !important;
+        margin-top: 30px !important; /* Chừa chỗ cho tiêu đề */
+        background: #fff !important;
+        border: 4px solid #fff !important;
+        border-radius: 12px !important;
+        box-shadow: 0 0 20px rgba(255,255,255,0.2) !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* --- LAYOUT CHIA ĐÔI (Trái - Phải) --- */
+    .stage-res-layout {
+        display: flex !important;
+        width: 100%;
+        height: 100%;
+        flex-direction: row !important; 
+    }
+
+    /* Cột Trái: Hạng (S, A, B) & Độ khó */
+    .sr-left {
+        flex: 1 !important;
+        background: #f1f2f6;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        border-right: 2px dashed #ccc;
+    }
+
+    /* Cột Phải: Chi tiết điểm & Nút */
+    .sr-right {
+        flex: 1.5 !important; /* Rộng hơn chút để chứa bảng điểm */
+        padding: 10px 20px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    /* Tinh chỉnh text trong cột trái */
+    .grade-text { font-size: 60px !important; margin: 5px 0 !important; }
+    .acc-text { font-size: 10px !important; }
+    .diff-stars { font-size: 10px !important; margin-top: 5px !important; }
+
+    /* Tinh chỉnh bảng điểm bên phải */
+    .score-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px !important;
+        margin-bottom: 6px !important;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 2px;
+    }
+
+    /* Tổng điểm to */
+    .total-score-box {
+        background: #feca57 !important;
+        color: #fff !important;
+        text-shadow: 1px 1px 0 #d35400;
+        font-size: 18px !important;
+        padding: 8px !important;
+        text-align: center;
+        border-radius: 6px;
+        margin: 10px 0 !important;
+    }
+
+    /* Nút Continue */
+    #btn-stage-continue {
+        width: 100%;
+        padding: 12px !important;
+        background: #00b894 !important;
+        color: #fff !important;
+        border: none !important;
+        border-radius: 4px;
+        font-size: 12px !important;
+        box-shadow: 0 4px 0 #006266;
+    }
 }
 
+/* --- TĂNG KÍCH THƯỚC NÚT START GAME --- */
+#title-screen button {
+    font-size: 20px !important;       /* Chữ to hơn (gấp đôi bình thường) */
+    padding: 20px 60px !important;    /* Nút dày và dài hơn */
+    border-width: 4px !important;     /* Viền dày hơn */
+    margin-top: 50px !important;      /* Cách xa tiêu đề một chút */
+    box-shadow: 6px 6px 0 #000 !important; /* Bóng đổ đậm hơn */
+    
+    /* Hiệu ứng nhấp nháy nhẹ để mời gọi bấm */
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}

@@ -49,6 +49,48 @@ var Stage = {
         Stage.anl.connect(Stage.actx.destination);
     },
 
+    setupTouchInput: () => {
+        const c = Stage.canvas;
+        
+        // Ngăn chặn hành động cuộn/zoom mặc định của trình duyệt khi chạm vào game
+        c.style.touchAction = "none"; 
+
+        // Hàm tính toán xem ngón tay chạm vào làn số mấy (0, 1, 2, 3)
+        const getLaneIndex = (touch) => {
+            const rect = c.getBoundingClientRect();
+            // 500 là chiều rộng cố định được set trong hàm loop()
+            const scaleX = 500 / rect.width; 
+            const x = (touch.clientX - rect.left) * scaleX;
+            
+            // Chia 500px thành 4 làn đều nhau
+            const lane = Math.floor(x / (500 / 4));
+            return lane;
+        };
+
+        // Xử lý khi bắt đầu chạm (Tương đương KeyDown)
+        c.addEventListener("touchstart", (e) => {
+            e.preventDefault(); // Chặn hành vi mặc định
+            // Duyệt qua tất cả các ngón tay vừa chạm vào (hỗ trợ đa điểm)
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const lane = getLaneIndex(e.changedTouches[i]);
+                if (lane >= 0 && lane <= 3) {
+                    Stage.handleInput(lane); // Gọi hàm xử lý hit
+                }
+            }
+        }, { passive: false });
+
+        // Xử lý khi nhấc ngón tay ra (Tương đương KeyUp - Quan trọng cho nốt Hold)
+        c.addEventListener("touchend", (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const lane = getLaneIndex(e.changedTouches[i]);
+                if (lane >= 0 && lane <= 3) {
+                    Stage.handleRelease(lane); // Gọi hàm nhả nốt
+                }
+            }
+        }, { passive: false });
+    },
+
     // 2. HÀM BẮT ĐẦU MÀN CHƠI
     realInit: () => {
         if (!App.audioFile) { Notify.show("MISSING MUSIC"); return; }
@@ -101,6 +143,9 @@ var Stage = {
         // Reset biến Game
         Stage.canvas = document.getElementById('rhythmCanvas');
         Stage.ctx = Stage.canvas.getContext('2d');
+
+        Stage.setupTouchInput();
+
         Stage.run = true; Stage.hp = 100; Stage.notes = [];
         Stage.score = 0; Stage.scoreTap = 0; Stage.scoreHold = 0;
         Stage.combo = 0; Stage.maxCombo = 0;
@@ -272,101 +317,95 @@ var Stage = {
 
     endSong: (winStatus = true) => {
         Stage.run = false; 
-        if (Stage.audioElement) {
-            Stage.audioElement.pause(); 
-        }
-        // Xóa sự kiện phím khi kết thúc màn chơi
+        if (Stage.audioElement) Stage.audioElement.pause();
         window.onkeydown = null; window.onkeyup = null;
 
+        // Xử lý Thất bại
         if (winStatus === false) {
             Stage.lastTotalScore = 0;
             document.getElementById('stage-fail-overlay').style.display = 'flex';
-            document.getElementById('stage-fail-overlay').querySelector('h1').innerText = "FAILED";
             return; 
         }
 
         document.getElementById('stage-fail-overlay').style.display = 'none';
         document.getElementById('stage-detail-overlay').style.display = 'flex';
 
-        // --- TÍNH ĐIỂM ---
+        // --- TÍNH TOÁN ĐIỂM SỐ ---
         let total = Stage.totalNotesSpawned || 1;
-        let holdCount = Stage.totalHoldSpawned || 0;
-        
         if (Stage.maxRawScore === 0) Stage.maxRawScore = 1;
         let accuracy = (Stage.score / Stage.maxRawScore) * 100;
         if (accuracy > 100) accuracy = 100; 
 
+        // Tính sao độ khó
         let duration = App.stageConfig.duration || 180;
-        let density = total / duration;
-        let difficultyScore = (total * 0.05) + (holdCount * 0.1) + (density * 5);
+        let difficultyScore = (total * 0.05) + (Stage.totalHoldSpawned * 0.1) + (total/duration * 5);
         let starLevel = Math.min(10, Math.max(1, Math.floor(difficultyScore / 5)));
-        let starString = "★".repeat(starLevel) + "☆".repeat(10 - starLevel);
+        let starString = "★".repeat(starLevel) + "<span style='color:#ccc'>"+"★".repeat(10 - starLevel)+"</span>";
 
+        // Tính điểm cơ bản & Bonus
         let currentDiff = App.stageConfig.difficulty || 'medium';
         const MAX_SCORES = { 'easy': 10000, 'medium': 15000, 'hard': 20000 };
         let targetMaxScore = MAX_SCORES[currentDiff];
+        let baseScore = Math.floor(targetMaxScore * (accuracy / 100));
 
-        let performanceRatio = accuracy / 100; 
-        let baseScore = Math.floor(targetMaxScore * performanceRatio);
-
-        let concept = App.stageConfig.concept;
+        // Skill Bonus
         let skillBonus = 0;
-        let skillHtml = "";
+        let concept = App.stageConfig.concept;
+        if (concept === 'vocal') skillBonus = Math.floor(baseScore * (Player.stats.vocal / 100) * 3.0);
+        else if (concept === 'rap') skillBonus = Math.floor(baseScore * (Player.stats.rap / 100) * 2.5);
+        else if (concept === 'dance') skillBonus = Math.floor((baseScore * (Stage.maxCombo/total)) * (Player.stats.dance / 100) * 3.0);
 
-        if (concept === 'vocal') {
-            skillBonus = Math.floor(baseScore * (Player.stats.vocal / 100) * 3.0);
-            skillHtml = `<span style="color:#ff7675; font-weight:bold;">VOCAL BONUS:</span> <span>+${formatNum(skillBonus)}</span>`;
-        } else if (concept === 'rap') {
-            skillBonus = Math.floor(baseScore * (Player.stats.rap / 100) * 2.5);
-            skillHtml = `<span style="color:#a29bfe; font-weight:bold;">RAP BONUS:</span> <span>+${formatNum(skillBonus)}</span>`;
-        } else if (concept === 'dance') {
-            let comboRatio = Stage.maxCombo / total;
-            skillBonus = Math.floor((baseScore * comboRatio) * (Player.stats.dance / 100) * 3.0);
-            skillHtml = `<span style="color:#74b9ff; font-weight:bold;">DANCE BONUS:</span> <span>+${formatNum(skillBonus)}</span>`;
-        }
+        // Relationship Bonus
+        let relBonus = (typeof RelManager !== 'undefined') ? RelManager.getTeamBonus(Stage.teammates) : 0;
 
-        let relBonus = 0;
-        if (typeof RelManager !== 'undefined') relBonus = RelManager.getTeamBonus(Stage.teammates);
-
+        // Tổng kết
         let finalScore = baseScore + skillBonus + relBonus;
         
-        let quitMsg = "";
-        if (winStatus === 'quit') {
-            finalScore = Math.floor(finalScore * 0.5);
-            quitMsg = `<div class="score-line" style="color:red; font-weight:bold;"><span>QUIT PENALTY:</span> <span>-50%</span></div>`;
-        }
-
-        let penaltyRate = 0;
-        if (Stage.retryCount > 0) penaltyRate = Math.min(1, Stage.retryCount * 0.2);
-        let penaltyAmount = Math.floor(finalScore * penaltyRate);
-        finalScore -= penaltyAmount;
+        // Penaty nếu Quit hoặc Retry
+        if (winStatus === 'quit') finalScore = Math.floor(finalScore * 0.5);
+        if (Stage.retryCount > 0) finalScore -= Math.floor(finalScore * Math.min(1, Stage.retryCount * 0.2));
         
         Stage.lastTotalScore = finalScore;
 
-        let grade = "F"; let gradeColor = "#555";
-        if (accuracy >= 100) { grade = "SSS"; gradeColor = "#e17055"; }
+        // Xếp hạng (Grade)
+        let grade = "F"; let gradeColor = "#b2bec3";
+        if (accuracy >= 100) { grade = "SSS"; gradeColor = "#ff7675"; }
         else if (accuracy >= 95) { grade = "S"; gradeColor = "#feca57"; }
         else if (accuracy >= 90) { grade = "A"; gradeColor = "#00b894"; }
         else if (accuracy >= 80) { grade = "B"; gradeColor = "#0984e3"; }
         else if (accuracy >= 70) { grade = "C"; gradeColor = "#6c5ce7"; }
-        else if (accuracy >= 60) { grade = "D"; gradeColor = "#b2bec3"; }
+        else if (accuracy >= 60) { grade = "D"; gradeColor = "#636e72"; }
 
-        document.getElementById('stage-detail-content').innerHTML = `
-            <div style="text-align:center; margin-bottom:15px; border-bottom: 2px solid #eee; padding-bottom:10px;">
-                <div style="font-size:10px; color:#aaa; margin-bottom:5px;">${concept.toUpperCase()} / ${currentDiff.toUpperCase()}</div>
-                <div style="font-size:50px; font-weight:bold; color:${gradeColor}; text-shadow:3px 3px 0 #000;">${grade}</div>
-                <div style="font-size:12px; color:#2f3542; font-weight:bold;">ACCURACY: ${accuracy.toFixed(2)}%</div>
-            </div>
-            <div class="score-line"><span>DIFFICULTY:</span> <span style="color:#feca57; letter-spacing:-1px;">${starString}</span></div>
-            <div style="background:#f1f2f6; padding:5px; border-radius:5px; margin: 10px 0;">
-                <div class="score-line" style="border:none; margin:5px 0;"><span>STAGE SCORE:</span> <span>${formatNum(baseScore)}</span></div>
-                <div class="score-line" style="border:none; margin:5px 0;">${skillHtml}</div>
-                <div class="score-line" style="border:none; margin:5px 0; color:#fd79a8"><span>RELATIONSHIP:</span> <span>+${formatNum(relBonus)}</span></div>
-            </div>
-            ${quitMsg}
-            ${penaltyAmount > 0 ? `<div class="score-line" style="color:red"><span>RETRY PENALTY:</span> <span>-${formatNum(penaltyAmount)}</span></div>` : ''}
-            <div class="total-line" style="font-size:24px; border-top: 4px solid #2f3542; padding-top:10px; margin-top:10px; background:#feca57; color:#fff; text-shadow:1px 1px 0 #000; border-radius:5px;">
-                TOTAL: ${formatNum(finalScore)}
+        // --- RENDER GIAO DIỆN (LAYOUT MỚI CHO MOBILE) ---
+        const contentDiv = document.getElementById('stage-detail-content');
+        
+        // Ẩn nút cũ ngoài overlay nếu có (để tránh bị trùng)
+        const oldBtn = document.querySelector('#stage-detail-overlay > button');
+        if(oldBtn) oldBtn.style.display = 'none';
+
+        contentDiv.innerHTML = `
+            <div class="stage-res-layout">
+                <div class="sr-left">
+                    <div style="font-size:10px; color:#aaa; font-weight:bold;">${concept.toUpperCase()} / ${currentDiff.toUpperCase()}</div>
+                    <div class="grade-text" style="color:${gradeColor}; text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.1);">${grade}</div>
+                    <div class="acc-text" style="color:#2f3542;">ACC: ${accuracy.toFixed(1)}%</div>
+                    <div class="diff-stars" style="color:#feca57;">${starString}</div>
+                </div>
+
+                <div class="sr-right">
+                    <div class="score-row"><span>BASE SCORE</span> <b>${formatNum(baseScore)}</b></div>
+                    <div class="score-row" style="color:#0984e3;"><span>SKILL BONUS</span> <b>+${formatNum(skillBonus)}</b></div>
+                    <div class="score-row" style="color:#e84393;"><span>TEAMWORK</span> <b>+${formatNum(relBonus)}</b></div>
+                    
+                    ${winStatus === 'quit' ? `<div class="score-row" style="color:red;"><span>QUIT PENALTY</span> <b>-50%</b></div>` : ''}
+                    ${Stage.retryCount > 0 ? `<div class="score-row" style="color:red;"><span>RETRY PENALTY</span> <b>-${Stage.retryCount*20}%</b></div>` : ''}
+                    
+                    <div class="total-score-box">
+                        TOTAL: ${formatNum(finalScore)}
+                    </div>
+
+                    <button id="btn-stage-continue" onclick="Game.finishStageDay()">CONTINUE</button>
+                </div>
             </div>
         `;
     },

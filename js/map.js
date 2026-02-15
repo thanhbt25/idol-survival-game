@@ -78,24 +78,32 @@ var HubMap = {
         const ctx = HubMap.ctx;
         const cw = HubMap.canvas.width;
         const ch = HubMap.canvas.height;
+
+        let zoom = Math.min(1, ch / 600);
+        zoom = Math.max(0.6, zoom);
+
         let mv = false;
         let dx = 0, dy = 0;
         let speed = 7; 
+
         if (HubMap.keys['ArrowUp'] && Player.y > 50) { Player.y -= speed; mv = true; }
         if (HubMap.keys['ArrowDown'] && Player.y < HubMap.height - 50) { Player.y += speed; mv = true; }
         if (HubMap.keys['ArrowLeft'] && Player.x > 50) { Player.x -= speed; mv = true; }
         if (HubMap.keys['ArrowRight'] && Player.x < HubMap.width - 50) { Player.x += speed; mv = true; }
 
-        if (Joystick.active) {
+        if (typeof Joystick !== 'undefined' && Joystick.active) {
             dx = Joystick.valX; 
             dy = Joystick.valY;
         }
 
         if (dx !== 0 || dy !== 0) {
+            if (!Joystick.active) {
+                const len = Math.sqrt(dx*dx + dy*dy);
+                if(len>0) { dx/=len; dy/=len; }
+            }
             Player.x += dx * speed;
             Player.y += dy * speed;
             mv = true;
-
             Player.x = Math.max(50, Math.min(Player.x, HubMap.width - 50));
             Player.y = Math.max(50, Math.min(Player.y, HubMap.height - 50));
         }
@@ -109,11 +117,16 @@ var HubMap = {
             }
         });
 
-        HubMap.camera.x = Math.max(0, Math.min(Player.x - cw / 2, HubMap.width - cw));
-        HubMap.camera.y = Math.max(0, Math.min(Player.y - ch / 2, HubMap.height - ch));
+        let viewW = cw / zoom;
+        let viewH = ch / zoom;
+
+        HubMap.camera.x = Math.max(0, Math.min(Player.x - viewW / 2, HubMap.width - viewW));
+        HubMap.camera.y = Math.max(0, Math.min(Player.y - viewH / 2, HubMap.height - viewH));
 
         ctx.clearRect(0, 0, cw, ch);
         ctx.save();
+
+        ctx.scale(zoom, zoom);
         ctx.translate(-HubMap.camera.x, -HubMap.camera.y);
 
         // 1. Draw Ground
@@ -281,12 +294,34 @@ var HubMap = {
         ctx.fillStyle = "#fff"; ctx.fillRect(x - (3*s), y - (7*s) + bounce, 2.5*s, 3*s); ctx.fillRect(x + (1*s), y - (7*s) + bounce, 2.5*s, 3*s); // Eyes
         ctx.fillStyle = "#000"; ctx.fillRect(x - (2*s), y - (6*s) + bounce, 1*s, 2*s); ctx.fillRect(x + (2*s), y - (6*s) + bounce, 1*s, 2*s); // Pupil
 
-        ctx.textAlign = "center"; ctx.font = isPlayer ? "bold 12px sans-serif" : "10px sans-serif";
+        ctx.textAlign = "center"; ctx.font = isPlayer ? "14px 'Press Start 2P'" : "13px 'Press Start 2P'";
         if (isPlayer) {
-            ctx.fillStyle = "#ff4757"; ctx.beginPath(); ctx.moveTo(x, y - (18*s) + bounce); ctx.lineTo(x - 5, y - (20*s) + bounce); ctx.lineTo(x + 5, y - (20*s) + bounce); ctx.fill();
-            ctx.fillStyle = "#fff"; ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.strokeText(char.name, x, y - (14*s) + bounce); ctx.fillText(char.name, x, y - (14*s) + bounce);
+            // --- VẼ MŨI TÊN (TO HƠN + VIỀN ĐEN) ---
+            ctx.fillStyle = "#ff4757"; 
+            ctx.strokeStyle = "#000"; // Màu viền đen
+            ctx.lineWidth = 2;        // Độ dày viền
+
+            ctx.beginPath();
+            // Đỉnh dưới (mũi nhọn hướng vào đầu nhân vật)
+            ctx.moveTo(x, y - (20 * s) + bounce); 
+            // Góc trái trên (mở rộng ra -8 thay vì -5)
+            ctx.lineTo(x - 8, y - (25 * s) + bounce); 
+            // Góc phải trên (mở rộng ra +8 thay vì +5)
+            ctx.lineTo(x + 8, y - (25 * s) + bounce); 
+            
+            ctx.closePath(); // Khép kín hình tam giác
+            ctx.fill();      // Tô màu đỏ
+            ctx.stroke();    // Vẽ viền đen
+
+            // --- VẼ TÊN (GIỮ NGUYÊN) ---
+            ctx.fillStyle = "#fff"; 
+            ctx.strokeStyle = "#000"; 
+            ctx.lineWidth = 3; 
+            ctx.strokeText(char.name, x, y - (14*s) + bounce); 
+            ctx.fillText(char.name, x, y - (14*s) + bounce);
         } else {
-            ctx.fillStyle = "#2f3542"; ctx.fillText(char.name.split(' ')[0], x, y - (14*s) + bounce);
+            ctx.fillStyle = "#2f3542"; 
+            ctx.fillText(char.name.split(' ')[0], x, y - (14*s) + bounce);
         }
     },
 
@@ -312,7 +347,9 @@ var HubMap = {
     },
     
     closeInteraction: () => { 
-        document.getElementById('interaction-modal').style.display = 'none'; 
+        const modal = document.getElementById('interaction-modal');
+        if (modal) modal.style.display = 'none'; // Dòng này cực kỳ quan trọng
+        
         HubMap.run = true; 
         HubMap.loop(); 
     }
