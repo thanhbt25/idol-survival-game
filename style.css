@@ -16,18 +16,20 @@ body {
         radial-gradient(circle, #fff 10%, transparent 10%);
     background-size: 40px 40px;
     background-position: 0 0, 20px 20px;
-    margin: 0; overflow: hidden;
+    margin: 0; overflow: hidden; padding: 0;
     display: flex; justify-content: center; align-items: center; height: 100vh;
     user-select: none; image-rendering: pixelated;
 }
 #game-container {
     width: 100vw;
-    height: calc(100vw * (9 / 16)); /* Tự động tính chiều cao theo 16:9 */
+    height: 100vh; /* Tự động tính chiều cao theo 16:9 */
+    height: 100dvh;
     max-height: 100vh;
     max-width: calc(100vh * (16 / 9)); /* Đảm bảo không tràn màn hình dọc */
     
     background: var(--panel);
-    border: 4px solid #2f3542;
+    border: none;
+    border-radius: 0;
     position: relative;
     overflow: hidden;
     display: flex;
@@ -434,6 +436,103 @@ canvas {
         transform: rotate(0deg); 
         width: 100vw;
         height: calc(100vw * (9 / 16));
+    }
+}
+
+@media (max-width: 768px) {
+    /* 1. Thu nhỏ bảng Stats bên phải */
+    #hub-stats-display {
+        top: 10px;
+        right: 10px;
+        padding: 8px 10px;
+        font-size: 10px; /* Chữ nhỏ lại */
+        min-width: 100px;
+        border-width: 2px;
+        background: rgba(255, 255, 255, 0.8); /* Làm mờ để nhìn xuyên map */
+    }
+    
+    /* Ẩn bớt các chỉ số phụ trên màn hình chính cho đỡ rối, chỉ hiện quan trọng */
+    #hub-stats-display div:not(:first-child):not(:nth-child(2)):not(:last-child) {
+        display: none; /* Tạm ẩn các dòng chỉ số con (Voc, Dan...), chỉ hiện Tên, Ngày, Fan */
+    }
+
+    /* 2. Thu nhỏ nút bấm bên trái */
+    button {
+        padding: 8px 10px !important;
+        font-size: 8px !important;
+        border-width: 2px !important;
+        box-shadow: 2px 2px 0 #2f3542 !important;
+    }
+
+    /* Đặt vị trí nút gọn hơn */
+    button[onclick="Game.showRelList()"] {
+        top: 10px !important;
+        left: 10px !important;
+        width: auto !important; /* Tự co giãn theo chữ */
+    }
+    button[onclick="Game.toggleSettings()"] {
+        top: 50px !important; /* Đẩy lên gần nút trên */
+        left: 10px !important;
+        width: auto !important;
+    }
+
+    /* 3. Minigame Container cũng phải full */
+    #minigame-canvas-container {
+        width: 100% !important;
+        height: 100% !important;
+        border: none;
+        max-width: none;
+        max-height: none;
+    }
+    
+    /* Chữ trong Minigame to lên một chút để dễ đọc */
+    #minigame-info { font-size: 12px !important; }
+}
+
+#mobile-controls {
+    display: none; /* Mặc định ẩn trên PC */
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    z-index: 1000;
+    touch-action: none; /* Ngăn chặn cuộn trang khi chạm vào */
+}
+
+#joystick-base {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.1); /* Màu nền rất mờ */
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s;
+    opacity: 0.3; /* Rất mờ khi không chạm */
+}
+
+/* Khi chạm vào thì sáng lên một chút */
+#joystick-base.active {
+    opacity: 0.8;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+#joystick-stick {
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 71, 87, 0.8); /* Màu đỏ nhạt của theme game */
+    border-radius: 50%;
+    position: absolute;
+    pointer-events: none; /* Để sự kiện chạm xuyên qua */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    transform: translate(0, 0); /* Sẽ được JS cập nhật */
+}
+
+/* Chỉ hiện trên màn hình cảm ứng hoặc màn hình nhỏ */
+@media (max-width: 1024px) {
+    #mobile-controls {
+        display: block;
     }
 }
 

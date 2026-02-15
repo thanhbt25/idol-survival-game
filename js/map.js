@@ -79,12 +79,26 @@ var HubMap = {
         const cw = HubMap.canvas.width;
         const ch = HubMap.canvas.height;
         let mv = false;
-
-        let speed = 7; // Fast speed for huge map
+        let dx = 0, dy = 0;
+        let speed = 7; 
         if (HubMap.keys['ArrowUp'] && Player.y > 50) { Player.y -= speed; mv = true; }
         if (HubMap.keys['ArrowDown'] && Player.y < HubMap.height - 50) { Player.y += speed; mv = true; }
         if (HubMap.keys['ArrowLeft'] && Player.x > 50) { Player.x -= speed; mv = true; }
         if (HubMap.keys['ArrowRight'] && Player.x < HubMap.width - 50) { Player.x += speed; mv = true; }
+
+        if (Joystick.active) {
+            dx = Joystick.valX; 
+            dy = Joystick.valY;
+        }
+
+        if (dx !== 0 || dy !== 0) {
+            Player.x += dx * speed;
+            Player.y += dy * speed;
+            mv = true;
+
+            Player.x = Math.max(50, Math.min(Player.x, HubMap.width - 50));
+            Player.y = Math.max(50, Math.min(Player.y, HubMap.height - 50));
+        }
 
         NPCs.forEach(c => {
             if (!c.eliminated) {

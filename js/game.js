@@ -32,6 +32,95 @@ function resizeGame() {
     console.log("Resized to:", container.clientWidth, "x", container.clientHeight);
 }
 
+var Joystick = {
+    active: false,
+    base: null,
+    stick: null,
+    maxRadius: 35, // Giới hạn di chuyển của cần gạt
+    valX: 0, // Giá trị từ -1 đến 1
+    valY: 0, // Giá trị từ -1 đến 1
+    touchId: null,
+
+    init: () => {
+        Joystick.base = document.getElementById('joystick-base');
+        Joystick.stick = document.getElementById('joystick-stick');
+        
+        if (!Joystick.base) return;
+
+        // Sự kiện bắt đầu chạm
+        Joystick.base.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            Joystick.active = true;
+            Joystick.base.classList.add('active');
+            Joystick.touchId = e.changedTouches[0].identifier;
+            Joystick.handleMove(e.changedTouches[0]);
+        }, { passive: false });
+
+        // Sự kiện di chuyển ngón tay
+        Joystick.base.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!Joystick.active) return;
+            
+            // Tìm điểm chạm đúng trong danh sách touches
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === Joystick.touchId) {
+                    Joystick.handleMove(e.changedTouches[i]);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        // Sự kiện thả tay
+        const endTouch = (e) => {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === Joystick.touchId) {
+                    Joystick.reset();
+                    break;
+                }
+            }
+        };
+        
+        Joystick.base.addEventListener('touchend', endTouch);
+        Joystick.base.addEventListener('touchcancel', endTouch);
+    },
+
+    handleMove: (touch) => {
+        const rect = Joystick.base.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Tính khoảng cách từ tâm
+        let dx = touch.clientX - centerX;
+        let dy = touch.clientY - centerY;
+        
+        // Tính khoảng cách vector
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Giới hạn trong hình tròn (Clamp)
+        if (distance > Joystick.maxRadius) {
+            const ratio = Joystick.maxRadius / distance;
+            dx *= ratio;
+            dy *= ratio;
+        }
+
+        // Cập nhật giao diện (di chuyển cái núm)
+        Joystick.stick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        // Tính toán giá trị output (-1 đến 1) để nhân vật di chuyển
+        Joystick.valX = dx / Joystick.maxRadius;
+        Joystick.valY = dy / Joystick.maxRadius;
+    },
+
+    reset: () => {
+        Joystick.active = false;
+        Joystick.base.classList.remove('active');
+        Joystick.stick.style.transform = `translate(0px, 0px)`;
+        Joystick.valX = 0;
+        Joystick.valY = 0;
+        Joystick.touchId = null;
+    }
+};
+
 // Lắng nghe sự kiện thay đổi kích thước và xoay màn hình
 window.addEventListener('resize', resizeGame);
 window.addEventListener('orientationchange', () => {
@@ -41,11 +130,8 @@ window.addEventListener('orientationchange', () => {
 
 function initGame() {
     showScreen('title-screen'); 
-    
-    // Thay vì tự gán clientWidth thủ công, hãy gọi hàm tập trung:
     resizeGame();
-    
-    // Gọi tạo Decor một lần
+    Joystick.init();
     generateDecor();
 }
 
@@ -808,3 +894,35 @@ window.addEventListener('keydown', (e) => {
 });
 
 initGame();
+
+document.addEventListener('DOMContentLoaded', () => {
+    const statsBox = document.getElementById('hub-stats-display');
+    if (statsBox) {
+        // Tạo biến trạng thái
+        statsBox.dataset.expanded = "false";
+        
+        // Thêm sự kiện click để mở rộng/thu gọn
+        statsBox.onclick = () => {
+            const isExpanded = statsBox.dataset.expanded === "true";
+            const children = statsBox.querySelectorAll('div');
+            
+            if (isExpanded) {
+                // Thu gọn: Ẩn các chỉ số chi tiết
+                children.forEach((el, index) => {
+                    // Giữ lại Tên (0), Ngày (1), và Fan (last)
+                    if (index > 1 && index < children.length - 1) el.style.display = 'none';
+                });
+                statsBox.dataset.expanded = "false";
+                statsBox.style.opacity = "0.8"; // Mờ đi
+            } else {
+                // Mở rộng: Hiện tất cả
+                children.forEach(el => el.style.display = 'block');
+                statsBox.dataset.expanded = "true";
+                statsBox.style.opacity = "1"; // Rõ lên
+            }
+        };
+        
+        // Mặc định chạy 1 lần để thu gọn lúc đầu
+        statsBox.click(); 
+    }
+});
