@@ -1,0 +1,108 @@
+/* --- BGM SYSTEM (FIXED VOLUME) --- */
+var BGM = {
+    ctx: null,
+    enabled: true,    
+    currentType: null, 
+    timer: null,
+
+    // Khởi tạo AudioContext (Cần thiết để trình duyệt cho phép phát nhạc)
+    init: () => {
+        if (!BGM.ctx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            BGM.ctx = new AC();
+        }
+    },
+
+    toggle: () => {
+        BGM.enabled = !BGM.enabled;
+        
+        // Cập nhật giao diện nút bấm (nếu có)
+        const btnMain = document.getElementById('bgm-toggle');
+        const btnSetting = document.getElementById('btn-setting-bgm');
+        
+        if (BGM.enabled) {
+            if (BGM.currentType) BGM.play(BGM.currentType);
+            if(btnMain) btnMain.innerText = "🔊 BGM ON";
+            if(btnSetting) btnSetting.innerText = "🔊 BGM ON";
+        } else {
+            BGM.stop();
+            if(btnMain) btnMain.innerText = "🔇 BGM OFF";
+            if(btnSetting) btnSetting.innerText = "🔇 BGM OFF";
+        }
+    },
+
+    play: (type) => {
+        BGM.currentType = type; 
+        clearInterval(BGM.timer);
+
+        if (!BGM.enabled) return; 
+
+        // 1. Đảm bảo AudioContext hoạt động
+        BGM.init();
+        if (BGM.ctx.state === 'suspended') {
+            BGM.ctx.resume();
+        }
+
+        let n = 0;
+        let melody = [];
+        let speed = 200;
+        let waveType = 'triangle';
+
+        // 2. Định nghĩa giai điệu
+        if (type === 'hub') {
+            waveType = 'triangle'; 
+            speed = 200;
+            // Giai điệu Hub vui tươi
+            melody = [
+                262, 330, 392, 440, 392, 330, 262, 0,
+                330, 392, 523, 659, 523, 392, 330, 0,
+                294, 349, 440, 587, 440, 349, 294, 0,
+                196, 262, 330, 392, 330, 262, 196, 0
+            ];
+        } else {
+            // Giai điệu sự kiện dồn dập hơn
+            waveType = 'square'; 
+            speed = 120; 
+            melody = [
+                523, 0, 523, 587, 659, 0, 523, 659,
+                784, 0, 659, 784, 1046, 0, 784, 1046,
+                1175, 1046, 880, 784, 659, 587, 523, 440
+            ];
+        }
+
+        // 3. Vòng lặp phát nhạc
+        BGM.timer = setInterval(() => {
+            if (!BGM.enabled) return;
+            
+            const freq = melody[n % melody.length];
+            
+            if (freq > 0) {
+                // Tạo bộ phát âm thanh mới cho mỗi nốt (Logic cũ - An toàn nhất)
+                const o = BGM.ctx.createOscillator();
+                const g = BGM.ctx.createGain();
+                
+                o.connect(g); 
+                g.connect(BGM.ctx.destination); // Kết nối thẳng ra loa
+                
+                o.type = waveType; 
+                o.frequency.value = freq;
+                
+                // --- [ĐIỂM SỬA QUAN TRỌNG] ---
+                // Code cũ là 0.05 (quá nhỏ). 
+                // Code mới là 0.3 (to hơn gấp 6 lần).
+                g.gain.setValueAtTime(0.3, BGM.ctx.currentTime); 
+                
+                // Hiệu ứng tắt dần (Decay) để tiếng đỡ chói
+                g.gain.exponentialRampToValueAtTime(0.01, BGM.ctx.currentTime + 0.1);
+                
+                o.start();
+                o.stop(BGM.ctx.currentTime + 0.1);
+            }
+            n++;
+        }, speed);
+    },
+
+    stop: () => {
+        clearInterval(BGM.timer);
+    }
+};

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Idol Survival: Sunny Debut</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+
+<div id="game-container">
+    <div id="game-toast"></div>
+
+    <div id="team-reveal-screen" class="screen" style="background: #222; color: #fff;">
+        <h1 style="color: #feca57; text-shadow: 0 0 10px #e67e22; margin-bottom: 30px;">TEAM BATTLE RESULTS</h1>
+        <div id="team-reveal-list" style="display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 600px;"></div>
+        <button id="btn-reveal-next" onclick="Game.showDaySummary()" style="margin-top: 30px; display: none; background: #fff; color: #222;">VIEW MY TOTAL</button>
+    </div>
+
+    <div id="day-summary-screen" class="screen" style="background: #fff9c4;">
+        <h1 style="color: #2f3542; font-size: 28px;">DAILY BREAKDOWN</h1>
+        <div style="background: #fff; border: 4px solid #2f3542; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; color: #2f3542;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>MINIGAME SCORE:</span> <span id="sum-game" style="font-weight: bold; color: #0984e3;">+0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px;">
+                <span>EVENT BONUS:</span> <span id="sum-bonus" style="font-weight: bold; color: #e17055;">+0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; border-bottom: 2px dashed #ccc; padding-bottom: 10px;">
+                <span>LIVESTAGE SCORE:</span> <span id="sum-stage" style="font-weight: bold; color: #6c5ce7;">+0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 16px; margin-top: 10px;">
+                <span>TOTAL GAIN:</span> <span id="sum-total" style="font-weight: bold; color: #00b894;">+0</span>
+            </div>
+        </div>
+        <button onclick="Game.finalizeDay()" style="margin-top: 20px; background: #2f3542; color: #fff;">COMPLETE DAY</button>
+    </div>
+
+    <div id="comp-result-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:100; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+        <h1 style="color:#ffeaa7; text-shadow: 4px 4px 0 #d35400; font-size: 30px; margin-bottom: 20px;">EVENT RANKING</h1>
+        <div id="comp-rank-list" style="width: 80%; max-width: 600px; background: #fff; border: 4px solid #2f3542; border-radius: 10px; padding: 20px; color: #2f3542; max-height: 400px; overflow-y: auto;"></div>
+        <button onclick="Competition.closeResult()" style="margin-top: 20px; background: #00b894; color: #fff; padding: 15px 30px; font-size: 14px;">CONTINUE TO STAGE</button>
+    </div>
+
+    <div id="comp-screen" class="screen" style="background: #2d3436;">
+        <h2 id="comp-title" style="color: #fab1a0; margin-top: 20px;">EVENT NAME</h2>
+        <div style="position: relative; width: 90%; height: 450px; background: #000; border: 4px solid #fff; margin: 0 auto;">
+            <canvas id="compCanvas"></canvas>
+            
+            <div id="comp-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+                <h1 id="comp-name" style="color:#ffeaa7">GAME NAME</h1>
+                <p id="comp-desc" style="font-size:10px; margin:20px 0; text-align:center; line-height:1.5; padding:0 20px;">...</p>
+                <button onclick="Competition.startGame()">READY?</button>
+            </div>
+
+            <div id="comp-hud" style="position:absolute; top:10px; left:10px; color:#fff; font-size:12px; display:none;">
+                TIME: <span id="c-time">30</span> | SCORE: <span id="c-score">0</span>
+            </div>
+
+            <div id="round-result-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:90; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+                <h2 style="color:#a29bfe; font-size: 20px; margin-bottom: 10px;">ROUND <span id="rr-round">1</span>/3 COMPLETED</h2>
+                <div style="background:#2d3436; border:4px solid #fff; padding:30px; border-radius:15px; text-align:center; width:300px;">
+                    <div style="font-size:12px; color:#aaa; margin-bottom:5px;">SCORE GAINED</div>
+                    <div id="rr-score" style="font-size:36px; color:#00b894; font-weight:bold; margin-bottom:20px;">0</div>
+                    <div style="border-top:1px dashed #555; margin:10px 0;"></div>
+                    <div style="font-size:12px; color:#aaa; margin-bottom:5px;">TOTAL EVENT SCORE</div>
+                    <div id="rr-total" style="font-size:24px; color:#ffeaa7; font-weight:bold;">0</div>
+                </div>
+                <button id="btn-next-round" onclick="Competition.nextRound()" style="margin-top:30px; padding:15px 30px; background:#ff7675; color:#fff; font-size:14px;">NEXT ROUND >></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1999; flex-direction:column; align-items:center; justify-content:center;">
+        <div class="result-box" style="width:500px; height:auto; background:#fff; border:4px solid #2f3542; text-align:center; padding: 40px;">
+            <h1 style="margin-top:0; color:#2f3542; font-size: 40px; margin-bottom: 30px;">PAUSED</h1>
+            <div style="margin:30px 0;">
+                <label style="font-size:14px; color:#555; margin-bottom: 10px; display:block;">AUDIO SETTINGS</label>
+                <button id="btn-setting-bgm" onclick="BGM.toggle(); Game.updateSettingsUI()" style="width:100%; padding: 20px; font-size: 16px;">🔊 BGM ON</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap: 15px;">
+                <button onclick="Game.toggleSettings()" style="width:100%; padding: 20px; font-size: 16px; background:#00b894; color:#fff;">RESUME GAME</button>
+                <button onclick="Game.quitToTitle()" style="width:100%; padding: 20px; font-size: 16px; background:#d63031; color:#fff;">QUIT TO TITLE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="title-screen" class="screen active">
+        <div class="title-logo">
+            IDOL SURVIVAL<br>
+            <span style="font-size: 24px; color: #ffeaa7;">SUNNY DEBUT</span>
+        </div>
+        <button onclick="Game.startCreation()" style="font-size: 16px; padding: 20px 40px; background: #fff; color: var(--primary);">START GAME</button>
+    </div>
+
+    <div id="create-screen" class="screen">
+        <div id="create-box">
+            <h1>TRAINEE PROFILE</h1>
+            <div style="margin-bottom:10px; color:var(--primary); font-size:10px;">POINTS: <span id="pool-points">100</span></div>
+            <div class="creation-cols">
+                <div class="creation-left">
+                    <div id="stats-inputs"></div>
+                    <div style="margin-top:15px; text-align:center;">
+                        <label style="font-size:10px;">NAME:</label><br>
+                        <input type="text" id="player-name" value="Sunny" style="padding:8px; margin-top:5px; border:2px solid #2f3542; font-family:inherit; text-align:center; width:100%; border-radius: 4px;">
+                    </div>
+                </div>
+                <div class="creation-right">
+                    <div style="font-size:10px; margin-bottom:5px;">PREVIEW</div>
+                    <canvas id="char-preview" width="100" height="100"></canvas>
+                    <div class="color-label">SKIN COLOR</div>
+                    <div id="picker-skin" class="color-picker-row"></div>
+                    <div class="color-label">HAIR COLOR</div>
+                    <div id="picker-hair" class="color-picker-row"></div>
+                    <div class="color-label">SHIRT COLOR</div>
+                    <div id="picker-shirt" class="color-picker-row"></div>
+                </div>
+            </div>
+            <button onclick="Game.finishCreation()" style="width:100%; margin-top:20px; background:var(--secondary); color:#fff">CONFIRM DEBUT</button>
+        </div>
+    </div>
+
+    <div id="npc-intro-screen" class="screen">
+        <div style="background:#fff; border:4px solid #2f3542; padding:20px; width:90%; height:80%; display:flex; flex-direction:column; border-radius:15px;">
+            <h2>30 TRAINEES</h2>
+            <div id="npc-list-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:8px; overflow-y:auto; flex-grow:1; padding:5px;"></div>
+            <button onclick="Game.enterHub()" style="align-self:center; margin-top:15px;">ENTER DORM</button>
+        </div>
+    </div>
+
+    <div id="hub-screen" class="screen">
+        <canvas id="hubCanvas"></canvas>
+        <div id="hub-ui-overlay">
+            <div id="hub-stats-display">
+                <div id="display-name" style="color:var(--primary); font-weight:bold; margin-bottom:5px; font-size:12px;">PLAYER</div>
+                <div style="color:var(--wood-dark)">DAY: <span id="day-counter">1</span>/30</div>
+                <hr style="margin:5px 0; border:1px dashed #ccc;">
+                <div>STA: <span id="d-stamina">50</span></div>
+                <div>VOC: <span id="d-vocal">0</span></div>
+                <div>DAN: <span id="d-dance">0</span></div>
+                <div>RAP: <span id="d-rap">0</span></div>
+                <div>VIS: <span id="d-visual">0</span></div>
+                <div>CHA: <span id="d-charisma">0</span></div>
+                <div>TEAM: <span id="d-teamwork">0</span></div>
+                <div style="margin-top:10px; color:#ff4757; font-weight:bold; border-top:2px solid #eee; padding-top:5px;">
+                    ♥ FANS: <span id="d-fans">0</span>
+                </div>
+            </div>
+
+            <div id="room-notification" style="display:none;">
+                <h2 id="room-title">ROOM</h2>
+                <p id="room-desc" style="font-size:10px; margin:15px 0; color:#555;">...</p>
+                <div id="stage-setup-area" style="display:none; margin-bottom:15px; padding:10px; background:#eee; border:2px dashed #999; border-radius:5px;">
+                    <input type="file" id="song-input" accept="audio/*" style="display:none" onchange="Game.handleSongUpload(this)">
+                    <button onclick="document.getElementById('song-input').click()" style="font-size:8px; width:100%;">📂 SELECT MP3</button>
+                    <div id="song-name-display" style="font-size:8px; color:#ff4757; margin-top:5px;">NO FILE</div>
+                    <div id="concept-selector" style="display:none; margin-top:10px; border-top:1px solid #ccc; padding-top:5px;">
+                        <div style="font-size:8px; margin-bottom:5px;">SELECT CONCEPT:</div>
+                        <div style="display:flex; justify-content:center; gap:5px;">
+                            <button onclick="Game.selectConcept('vocal')" class="concept-btn" id="btn-c-vocal">VOCAL</button>
+                            <button onclick="Game.selectConcept('dance')" class="concept-btn" id="btn-c-dance">DANCE</button>
+                            <button onclick="Game.selectConcept('rap')" class="concept-btn" id="btn-c-rap">RAP</button>
+                        </div>
+                        <div style="font-size:8px; margin:5px 0;">DIFFICULTY:</div>
+                        <div style="display:flex; justify-content:center; gap:5px;">
+                            <button onclick="Game.selectDiff('easy')" class="diff-btn" id="btn-d-easy" style="width:60px; font-size:8px;">EASY</button>
+                            <button onclick="Game.selectDiff('medium')" class="diff-btn" id="btn-d-medium" style="width:60px; font-size:8px;">MED</button>
+                            <button onclick="Game.selectDiff('hard')" class="diff-btn" id="btn-d-hard" style="width:60px; font-size:8px;">HARD</button>
+                        </div>
+                    </div>
+                    <button id="stage-start-btn" onclick="Game.triggerTeamSelection()" style="display:none; width:100%; margin-top:10px; background:var(--primary); color:white;">START STAGE</button>
+                </div>
+                <button id="room-action-btn">ACTION</button>
+                <button id="room-cancel-btn" onclick="HubMap.cancelRoom()" style="background:#eee">CANCEL</button>
+            </div>
+
+            <div id="interaction-modal" style="display:none;">
+                <h3 id="dialogue-npc-name" style="color:var(--secondary); margin-bottom:10px;">NAME</h3>
+                <p id="dialogue-text" style="font-size:10px; margin-bottom:15px; line-height:1.6;">...</p>
+                <div id="dialogue-options"></div>
+            </div>
+
+            <div id="team-select-overlay">
+                <h2 style="color:#2f3542">RANDOM TEAM DRAW</h2>
+                <div id="team-slots-container" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:20px 0;"></div>
+                <button id="start-stage-btn" style="display:none; background:var(--primary); color:#fff; padding:20px; font-size:14px;" onclick="Stage.realInit()">GO STAGE</button>
+            </div>
+
+            <button onclick="Game.showRelList()" style="position:absolute; top:10px; left:10px; z-index:50; width:150px; padding: 10px 0; background:#fff; border:3px solid #ff4757; color:#ff4757; pointer-events: auto; font-family: 'Press Start 2P', cursive; font-size: 10px;">❤︎ RELATIONS</button>
+            <button onclick="Game.toggleSettings()" style="position:absolute; top:60px; left:10px; z-index:50; width:150px; padding: 10px 0; background:#fff; border:3px solid #2f3542; color:#2f3542; pointer-events: auto; font-family: 'Press Start 2P', cursive; font-size: 10px;">☰ SETTINGS</button>
+            <button id="bgm-toggle" onclick="BGM.toggle()" style="position:absolute; top:10px; right:10px; font-size:8px; display:none;">🔊 BGM ON</button>
+        </div>
+    </div>
+
+    <div id="rel-screen" class="screen">
+        <div class="result-box" style="background: #ffeaa7;"> <h2 style="color:#ff6b81;">RELATIONSHIP CHART</h2>
+            <div id="rel-list-grid"></div> </div>
+        <button onclick="Game.closeRelList()" style="margin-top:20px; background:#ff4757; color:#fff;">CLOSE</button>
+    </div>
+
+    <div id="minigame-screen" class="screen">
+        <h2 style="color:#fff">TRAINING</h2>
+        <div id="minigame-canvas-container"></div>
+        <div id="minigame-info" style="color:#aaa; font-size:10px; margin-top:10px;"></div>
+        <button onclick="Minigame.exit()" style="margin-top:20px;">EXIT</button>
+        <div id="minigame-result-overlay">
+            <h2 id="mg-res-title" style="margin-bottom:20px; color:#0f0;">RESULT</h2>
+            <p id="mg-res-info" style="margin-bottom:20px;">...</p>
+            <button onclick="Minigame.retry()">TRY AGAIN</button>
+            <button onclick="Minigame.exit()">QUIT</button>
+        </div>
+    </div>
+
+    <div id="stage-screen" class="screen">
+        <div id="stage-ui">
+            <div class="side-panel">
+                <div style="font-size:10px; text-align:center; margin-bottom:20px; color:#555;">NOW PLAYING<br><span id="playing-song-name" style="color:var(--secondary); font-size:12px; font-weight:bold;">---</span></div>
+                <div id="stage-teammates-list" style="flex-grow:1; overflow-y:auto;"></div>
+                <button onclick="Stage.endSong('quit')" style="font-size:8px; background:#444; color:#fff;">END LIVESTAGE</button>
+            </div>
+            <div id="main-stage">
+                <canvas id="rhythmCanvas"></canvas>
+                <div id="score-hud">0</div>
+                <div id="combo-hud">COMBO 0</div>
+                <div style="position:absolute; bottom:10px; width:100%; text-align:center; color:#888; font-size:10px;">D F J K</div>
+                <div style="position:absolute; bottom:20px; right:10px; width:20px; height:200px; background:#333; border:2px solid #fff;">
+                    <div id="health-fill" style="width:100%; height:100%; background:var(--primary); transition:height 0.2s;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="stage-detail-overlay">
+            <h1 style="color:yellow; text-shadow:2px 2px #000">STAGE CLEAR!</h1>
+            <div class="score-box" id="stage-detail-content"></div>
+            <button onclick="Game.finishStageDay()" style="margin-top:20px;">CONTINUE</button>
+        </div>
+        
+        <div id="stage-fail-overlay">
+            <h1 style="color:red; font-size:40px;">FAILED</h1>
+            <button onclick="Stage.retryStage()">TRY AGAIN</button>
+            <button onclick="Stage.quitStage()" style="background:#555; margin-top:10px;">QUIT (GET SCORE)</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <h1>RANKING BOARD</h1>
+        <div id="elimination-msg" style="color:red; background:#fff; padding:10px; border-radius:5px; margin-bottom:15px; display:none; border:2px solid red;"></div>
+        <div class="result-box">
+            <div id="ranking-list"></div>
+        </div>
+        <button onclick="Game.nextDay()" style="margin-top:20px; background:var(--primary); color:#fff;">NEXT DAY</button>
+    </div>
+
+    <div id="game-over-screen" class="screen">
+        <h1 style="color: #d63031; font-size: 40px; margin-bottom: 10px;">ELIMINATED</h1>
+        <div style="font-size: 12px; color: #aaa; margin-bottom: 30px;">DON'T GIVE UP ON YOUR DREAM!</div>
+        <div class="result-box" style="height: auto; width: 350px; background: #fff; border-color: #d63031;">
+            <div style="display:flex; justify-content: space-between; padding: 10px; border-bottom: 1px dashed #ccc;">
+                <span>SURVIVED:</span> <span id="go-days" style="color:#2f3542">0 Days</span>
+            </div>
+            <div style="display:flex; justify-content: space-between; padding: 10px; border-bottom: 1px dashed #ccc;">
+                <span>FINAL RANK:</span> <span id="go-rank" style="color:#d63031; font-weight:bold">#99</span>
+            </div>
+            <div style="display:flex; justify-content: space-between; padding: 10px;">
+                <span>TOTAL VOTES:</span> <span id="go-votes" style="color:#0984e3">0</span>
+            </div>
+        </div>
+        <button onclick="Game.startCreation()" style="margin-top: 30px; padding: 15px 30px; background: #d63031; color: white;">TRY AGAIN</button>
+    </div>
+
+    <div id="win-screen" class="screen">
+        <canvas id="fireworks-canvas" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+        <h1 style="color: #feca57; text-shadow: 4px 4px 0 #d35400; font-size: 30px; z-index: 10; margin-top: 20px;">★ DEBUT SQUAD ★</h1>
+        <div id="pyramid-container" style="z-index: 10;">
+            <div id="py-row-1" class="py-row"></div>
+            <div id="py-row-2" class="py-row"></div>
+            <div id="py-row-3" class="py-row"></div>
+        </div>
+        <button onclick="Game.quitToTitle()" style="z-index:10; margin-top:20px; background: #fff; color: #2f3542;">MAIN MENU</button>
+    </div>
+
+    <div id="draft-screen" class="screen">
+        <h2 id="draft-title" style="margin-top: 20px;">TEAM SELECTION</h2>
+        <div id="draft-visual" style="position: relative; width: 95%; height: 750px; background: #dfe6e9; border: 4px solid #2f3542; border-radius: 8px;">
+            <canvas id="draftCanvas"></canvas>
+        </div>
+        <div id="draft-status" style="margin-top: 10px; font-size: 10px; color: #555;">LEADERS ARE PICKING...</div>
+        <button id="btn-start-event" onclick="SpecialEvent.startCompetition()" style="display:none; margin-top: 15px; background: var(--primary); color: #fff;">START COMPETITION</button>
+    </div>
+
+    <div id="heart-game-screen" class="screen" style="background: #2c3e50;">
+        <canvas id="heartCanvas"></canvas>
+        <div style="position: absolute; top: 20px; left: 20px; color: #fff; font-size: 14px;">
+            TIME: <span id="heart-time">15</span>s
+        </div>
+        <div style="position: absolute; top: 20px; right: 20px; color: #ff6b81; font-size: 14px;">
+            VOTES: <span id="heart-score">0</span>
+        </div>
+        <div id="heart-start-overlay" style="position:absolute; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:rgba(0,0,0,0.7);">
+            <h1 style="color:#ff6b81">APPEAL TIME!</h1>
+            <p style="color:#fff; font-size:10px; margin-bottom:20px;">CATCH FALLING HEARTS TO GAIN VOTES!</p>
+            <button onclick="HeartGame.start()">START</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/map.js"></script>
+<script src="js/minigame.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/game.js"></script>
+<script src="js/event.js"></script>
+</body>
+</html>
