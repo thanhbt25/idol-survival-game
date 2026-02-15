@@ -141,8 +141,8 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 /* MINIGAME */
 #minigame-screen { background: #2d3436; }
 #minigame-canvas-container {
-    width: 95% !important; /* Chiếm gần hết chiều ngang */
-    height: 60vh !important; /* Chiếm 60% chiều dọc */
+    width: 80% !important;
+    height: 80vh !important; 
     max-width: 800px;
     max-height: 500px;
     margin: 0 auto;
@@ -430,70 +430,11 @@ canvas {
 }
 .team-score-bar.my-team .ts-rank { background: #feca57; color: #222; }
 
-@media (max-orientation: portrait) {
-    #game-container {
-        /* Trên mobile dọc, chúng ta xoay ngang hoặc scale lại */
-        transform: rotate(0deg); 
-        width: 100vw;
-        height: calc(100vw * (9 / 16));
-    }
-}
-
-@media (max-width: 768px) {
-    /* 1. Thu nhỏ bảng Stats bên phải */
-    #hub-stats-display {
-        top: 10px;
-        right: 10px;
-        padding: 8px 10px;
-        font-size: 10px; /* Chữ nhỏ lại */
-        min-width: 100px;
-        border-width: 2px;
-        background: rgba(255, 255, 255, 0.8); /* Làm mờ để nhìn xuyên map */
-    }
-    
-    /* Ẩn bớt các chỉ số phụ trên màn hình chính cho đỡ rối, chỉ hiện quan trọng */
-    #hub-stats-display div:not(:first-child):not(:nth-child(2)):not(:last-child) {
-        display: none; /* Tạm ẩn các dòng chỉ số con (Voc, Dan...), chỉ hiện Tên, Ngày, Fan */
-    }
-
-    /* 2. Thu nhỏ nút bấm bên trái */
-    button {
-        padding: 8px 10px !important;
-        font-size: 8px !important;
-        border-width: 2px !important;
-        box-shadow: 2px 2px 0 #2f3542 !important;
-    }
-
-    /* Đặt vị trí nút gọn hơn */
-    button[onclick="Game.showRelList()"] {
-        top: 10px !important;
-        left: 10px !important;
-        width: auto !important; /* Tự co giãn theo chữ */
-    }
-    button[onclick="Game.toggleSettings()"] {
-        top: 50px !important; /* Đẩy lên gần nút trên */
-        left: 10px !important;
-        width: auto !important;
-    }
-
-    /* 3. Minigame Container cũng phải full */
-    #minigame-canvas-container {
-        width: 100% !important;
-        height: 100% !important;
-        border: none;
-        max-width: none;
-        max-height: none;
-    }
-    
-    /* Chữ trong Minigame to lên một chút để dễ đọc */
-    #minigame-info { font-size: 12px !important; }
-}
-
 #mobile-controls {
     display: none; /* Mặc định ẩn trên PC */
     position: absolute;
-    bottom: 50px;
-    left: 50px;
+    bottom: 20px;
+    left: 20px;
     z-index: 1000;
     touch-action: none; /* Ngăn chặn cuộn trang khi chạm vào */
 }
@@ -529,16 +470,128 @@ canvas {
     transform: translate(0, 0); /* Sẽ được JS cập nhật */
 }
 
-/* Chỉ hiện trên màn hình cảm ứng hoặc màn hình nhỏ */
-@media (max-width: 1024px) {
-    #mobile-controls {
-        display: block;
-    }
-}
-
 .result-box, #create-box {
     max-height: 80% !important;
     width: 90% !important;
     overflow-y: auto;
+}
+
+#rotate-device-overlay {
+    display: none; /* Mặc định ẩn */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #2f3542; z-index: 9999;
+    flex-direction: column; align-items: center; justify-content: center;
+    color: #fff;
+}
+.rotate-icon { font-size: 50px; margin-bottom: 20px; animation: spin 2s infinite linear; }
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* Chỉ hiện khi màn hình dọc trên mobile */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    
+    /* 1. Thu nhỏ các nút bấm chính (Relations, Settings) */
+    button {
+        padding: 4px 8px !important;
+        font-size: 8px !important;
+        border-width: 2px !important;
+        box-shadow: 2px 2px 0 #2f3542 !important;
+        margin: 2px !important;
+    }
+
+    button[onclick="Game.showRelList()"] {
+        width: 100px !important;
+        top: 10px !important;
+        left: 10px !important;
+    }
+
+    button[onclick="Game.toggleSettings()"] {
+        width: 100px !important;
+        top: 40px !important; /* Kéo lên sát nút trên */
+        left: 10px !important;
+    }
+
+    /* 2. Thu nhỏ bảng chỉ số (Stats) bên phải */
+    #hub-stats-display {
+        top: 5px !important;
+        right: 5px !important;
+        padding: 5px 8px !important;
+        font-size: 8px !important; /* Chữ siêu nhỏ */
+        line-height: 1.4 !important;
+        width: 110px !important; /* Cố định chiều rộng nhỏ */
+        min-width: auto !important;
+        border-width: 2px !important;
+    }
+    
+    #hub-stats-display hr {
+        margin: 2px 0 !important;
+    }
+
+    /* 3. Sửa màn hình tạo nhân vật (Create Screen - Ảnh 3 bạn gửi) */
+    #create-box {
+        width: 70% !important; /* Đừng để quá rộng */
+        max-height: 95vh !important; /* Gần full chiều cao */
+        padding: 10px !important;
+        display: flex;
+        flex-direction: row; /* Dàn ngang thay vì dọc để tiết kiệm chiều cao */
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    #create-box h1 {
+        width: 100%;
+        font-size: 12px !important;
+        margin: 5px 0 !important;
+        text-align: center;
+    }
+
+    .creation-cols {
+        gap: 10px !important;
+    }
+
+    /* Thu nhỏ các dòng chỉ số cộng điểm */
+    .stat-row {
+        height: 24px !important;
+        font-size: 8px !important;
+        padding: 2px 5px !important;
+    }
+    
+    .stat-controls button {
+        width: 18px !important;
+        height: 18px !important;
+        font-size: 8px !important;
+        padding: 0 !important;
+    }
+
+    /* Thu nhỏ ảnh nhân vật preview */
+    #char-preview {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 2px !important;
+    }
+    
+    .color-picker-row { margin-bottom: 2px !important; }
+    .color-btn { width: 15px !important; height: 15px !important; }
+    .color-label { font-size: 6px !important; margin-bottom: 2px !important; }
+
+    /* 4. Sửa Minigame (Ảnh 1) */
+    #minigame-canvas-container {
+        width: 50vw !important; /* Chỉ chiếm 50% chiều ngang màn hình */
+        height: 70vh !important; /* Chiếm 70% chiều cao */
+        border-width: 2px !important;
+    }
+    
+    /* Joystick nhỏ lại một chút và lùi vào góc */
+    #joystick-base {
+        width: 80px !important;
+        height: 80px !important;
+        bottom: 15px !important;
+        left: 15px !important;
+    }
+    #joystick-stick {
+        width: 30px !important;
+        height: 30px !important;
+    }
 }
 
