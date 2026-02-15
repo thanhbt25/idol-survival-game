@@ -2,14 +2,19 @@
   "name": "Idol Survival",
   "short_name": "IdolGame",
   "start_url": "./index.html",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#f0f8ff",
   "theme_color": "#f0f8ff",
   "orientation": "landscape",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1828/1828506.png",
+      "src": "icon.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
