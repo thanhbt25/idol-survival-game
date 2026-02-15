@@ -28,6 +28,19 @@ var HubMap = {
         if (HubMap.decorations.length === 0) HubMap.generateDecorations();
     },
 
+    toggleJoystick: (show) => {
+        const js = document.getElementById('mobile-controls');
+        const isMobile = window.innerWidth < 1024 || navigator.maxTouchPoints > 0;
+        
+        // Chỉ hiện nếu là mobile VÀ biến show = true
+        if (js && isMobile && show) {
+            js.style.display = 'block';
+            if (typeof Joystick !== 'undefined') Joystick.init(); // Đảm bảo event được gán
+        } else if (js) {
+            js.style.display = 'none';
+        }
+    },
+
     generateDecorations: () => {
         HubMap.decorations = [];
         // Generate 600 decorations because the map is huge
@@ -84,17 +97,23 @@ var HubMap = {
 
         let mv = false;
         let dx = 0, dy = 0;
-        let speed = 7; 
+        let speed = 5; 
 
+
+        // Mobile 
+        if (typeof Joystick !== 'undefined' && Joystick.active) {
+            Player.x += Joystick.valX * speed;
+            Player.y += Joystick.valY * speed;
+
+            mv = true;
+        }
+
+        // PC
         if (HubMap.keys['ArrowUp'] && Player.y > 50) { Player.y -= speed; mv = true; }
         if (HubMap.keys['ArrowDown'] && Player.y < HubMap.height - 50) { Player.y += speed; mv = true; }
         if (HubMap.keys['ArrowLeft'] && Player.x > 50) { Player.x -= speed; mv = true; }
         if (HubMap.keys['ArrowRight'] && Player.x < HubMap.width - 50) { Player.x += speed; mv = true; }
 
-        if (typeof Joystick !== 'undefined' && Joystick.active) {
-            dx = Joystick.valX; 
-            dy = Joystick.valY;
-        }
 
         if (dx !== 0 || dy !== 0) {
             if (!Joystick.active) {

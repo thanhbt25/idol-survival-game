@@ -210,6 +210,21 @@ function generateNPCs() {
 }
 
 var Game = {    
+    toggleJoystick: (show) => {
+        const el = document.getElementById('mobile-controls');
+        if (!el) return;
+        
+        // Kiểm tra xem có phải điện thoại không
+        const isMobile = window.innerWidth < 1024 || navigator.maxTouchPoints > 0;
+
+        if (show && isMobile) {
+            el.style.display = 'block';
+            if (Joystick.init) Joystick.init(); // Khởi tạo lại sự kiện chạm
+        } else {
+            el.style.display = 'none';
+        }
+    },
+
     startCreation: () => {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!BGM.ctx) BGM.ctx = new AC();
@@ -461,6 +476,7 @@ var Game = {
     },
 
     quitToTitle: () => {
+        Game.toggleJoystick(false);
         if(confirm("Quit to Title Screen? Unsaved progress will be lost.")) {
             App.paused = false;
             document.getElementById('settings-overlay').style.display = 'none';
@@ -504,6 +520,13 @@ var Game = {
         showScreen('hub-screen'); 
         BGM.play('hub'); 
         Notify.show("WELCOME TO IDOL DORM!<br>DAY " + App.day);
+        
+        Game.toggleJoystick(true); 
+        
+        if (typeof HubMap !== 'undefined') {
+            HubMap.run = true;
+            HubMap.loop();
+        }
     },
     
     checkStageDay: () => {
@@ -535,7 +558,7 @@ var Game = {
         // --- FIX LỖI TRÀN BỘ NHỚ (INFINITE LOOP) ---
         // Thay vì gọi showScreen('hub-screen') (vốn sẽ gọi lại checkStageDay -> tạo vòng lặp),
         // Ta tự tay thao tác DOM để hiện màn hình Hub mà không kích hoạt logic kiểm tra lại.
-        
+        Game.toggleJoystick(false);
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('hub-screen').classList.add('active');
         App.screen = 'hub-screen';
@@ -787,11 +810,15 @@ var Game = {
             showScreen('heart-game-screen');
             document.getElementById('heart-start-overlay').style.display = 'flex';
         } else {
-            Game.simDay(); // Tính toán xếp hạng toàn server
+            Game.simDay(); 
         }
     },
 
     simDay: () => {
+        document.getElementById('interaction-modal').style.display = 'none';
+
+        Game.toggleJoystick(false);
+
         if(C.ELIM_DAYS.includes(App.day)) {
             showScreen('result-screen'); 
             Game.renderRank();
@@ -947,6 +974,7 @@ var Game = {
     },
 
     triggerInteraction: (npc) => {
+        Game.toggleJoystick(false);
         HubMap.run = false;
         document.getElementById('interaction-modal').style.display = 'block';
         document.getElementById('dialogue-npc-name').innerText = npc.name;
@@ -992,6 +1020,7 @@ var Game = {
 
                 updateUI(); // Cập nhật giao diện điểm số
 
+                Game.toggleJoystick(true);
                 // 2. [QUAN TRỌNG] Đóng bảng hội thoại ngay lập tức
                 // Gọi hàm closeInteraction của HubMap thay vì tự ẩn thủ công để đảm bảo logic chạy lại
                 if (typeof HubMap !== 'undefined' && HubMap.closeInteraction) {

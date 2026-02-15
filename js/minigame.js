@@ -63,6 +63,7 @@ var Minigame = {
     },
 
     start: (type) => {
+        Game.toggleJoystick(false);
         BGM.play('minigame');
         showScreen('minigame-screen');
         Minigame.type = type; 
@@ -500,7 +501,7 @@ vocal: (c, params) => {
         let direction = 1;     
         let targetW = params.targetW * (w / 600); // Scale vùng xanh
         let targetX = Math.random() * (barW - targetW);
-        let round = 1; const maxRounds = 5;
+        let round = 0; const maxRounds = 5;
 
         // Vẽ lại mỗi frame
         Minigame.timer = setInterval(() => {
@@ -538,7 +539,7 @@ vocal: (c, params) => {
             // Kiểm tra trúng
             if (cursorX >= targetX && cursorX <= targetX + targetW) {
                 round++;
-                if (round >= maxRounds) {
+                if (round > maxRounds) {
                     Minigame.finish(true, 5);
                 } else {
                     speed += params.speedInc * (w/600); // Tăng tốc

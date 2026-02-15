@@ -346,24 +346,399 @@ var Competition = {
     },
     
     // --- SETUP LOGIC GAME (Giữ nguyên code cũ của bạn cho các hàm setup/loop game) ---
-    setupShoe: () => { Competition.shoeState = { barX:0, dir:1, speed:15, phase:'aiming', shoeX:50, shoeY:0, shoeVX:0, shoeVY:0, rot:0, distance:0 }; },
-    loopShoe: (ctx, w, h) => { /* Code cũ */ let s=Competition.shoeState; ctx.fillStyle="#48dbfb"; ctx.fillRect(0,0,w,h); ctx.fillStyle="#2ecc71"; ctx.fillRect(0,h-60,w,60); if(s.phase==='aiming'){drawFace(ctx,50,h-90,Player,3);ctx.fillStyle="#555";ctx.fillRect(50,h/2-20,w-100,40);ctx.fillStyle="#fff";ctx.fillRect(50+s.barX,h/2-30,10,60);s.barX+=s.speed*s.dir;if(s.barX>w-110||s.barX<0)s.dir*=-1;}else{s.shoeX+=s.shoeVX;s.shoeY+=s.shoeVY;s.shoeVY+=0.5;s.rot+=0.2;s.distance=Math.min(100,(s.shoeX/w)*100);ctx.save();ctx.translate(s.shoeX,s.shoeY);ctx.rotate(s.rot);ctx.fillStyle="#d63031";ctx.fillRect(-10,-5,20,10);ctx.restore();drawFace(ctx,50,h-90,Player,3);ctx.fillStyle="#2f3542";ctx.font="30px Arial";ctx.fillText(Math.floor(s.distance)+"m",w/2,h/2);if(s.shoeY>h-60)Competition.finish(s.distance);} },
-    calcShoeTrajectory: () => { let w=Competition.canvas.width; let power=1.0-Math.abs((w-50)-(Competition.shoeState.barX+50))/w; Competition.shoeState.shoeX=50; Competition.shoeState.shoeY=Competition.canvas.height-90; Competition.shoeState.shoeVX=15*power; Competition.shoeState.shoeVY=-12; },
-    setupRun: () => { Competition.entities=[{id:'p',x:20,y:100,isPlayer:true},{id:0,x:20,y:150,isPlayer:false},{id:1,x:20,y:200,isPlayer:false}]; },
-    loopRun: (ctx, w, h) => { ctx.fillStyle="#e17055";ctx.fillRect(0,0,w,h);let fX=w-50;ctx.fillStyle="#fff";ctx.fillRect(fX,0,20,h);Competition.entities.forEach(e=>{if(!e.isPlayer)e.x+=3+Math.random();drawFace(ctx,e.x,e.y,e.isPlayer?Player:NPCs[e.id],1.5);if(e.isPlayer){Competition.score=Math.min(100,Math.floor((e.x/fX)*100));document.getElementById('c-score').innerText=Competition.score+"/100";}if(e.x>fX&&e.isPlayer)Competition.finish(100);}); },
-    setupPush: () => { let cx=Competition.canvas.width/2, cy=Competition.canvas.height/2; Competition.entities=[]; SpecialEvent.teams.forEach((t,i)=>{let ang=i*(Math.PI*2/SpecialEvent.teams.length); Competition.entities.push({id:i,char:t.leader,x:cx+Math.cos(ang)*120,y:cy+Math.sin(ang)*120,r:25,vx:0,vy:0,isPlayer:t.members.some(m=>m.id==='p'),mass:1.2});}); },
-    loopPush: (ctx, w, h) => { ctx.fillStyle="#d3a675";ctx.fillRect(0,0,w,h);let cx=w/2,cy=h/2,r=Math.min(w,h)*0.4;ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle="#f5e6ca";ctx.fill();ctx.lineWidth=8;ctx.strokeStyle="#e74c3c";ctx.stroke();Competition.entities.forEach(e=>{if(e.elim){return;}if(e.isPlayer){e.vx+=Competition.joystick.vecX*0.8;e.vy+=Competition.joystick.vecY*0.8;}else{let t=Competition.entities.find(o=>o.isPlayer&&!o.elim);if(t){let dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy);if(d>0){e.vx+=(dx/d)*0.3;e.vy+=(dy/d)*0.3;}}}e.vx*=0.92;e.vy*=0.92;e.x+=e.vx;e.y+=e.vy;drawFace(ctx,e.x,e.y,e.char,3.5);if(Math.hypot(e.x-cx,e.y-cy)>r){e.elim=true;if(e.isPlayer)Competition.finish(10);}}); for(let i=0;i<Competition.entities.length;i++)for(let j=i+1;j<Competition.entities.length;j++){let a=Competition.entities[i],b=Competition.entities[j];if(a.elim||b.elim)continue;let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<60){let an=Math.atan2(dy,dx),f=3;let tx=Math.cos(an)*f,ty=Math.sin(an)*f;a.vx-=tx/a.mass;a.vy-=ty/a.mass;b.vx+=tx/b.mass;b.vy+=ty/b.mass;}} if(Competition.entities.filter(e=>!e.elim&&!e.isPlayer).length===0)Competition.finish(100); },
-    setupCatch: () => { Competition.entities=[]; for(let i=0;i<10;i++)Competition.entities.push({x:Math.random()*400,y:Math.random()*300,vx:Math.random()*4-2,vy:Math.random()*4-2}); Competition.players=[{x:200,y:200,isPlayer:true},{x:220,y:220,isPlayer:false},{x:200,y:220,isPlayer:false}]; },
-    loopCatch: (ctx, w, h) => { ctx.fillStyle="#55efc4";ctx.fillRect(0,0,w,h);Competition.entities.forEach(c=>{c.x+=c.vx;c.y+=c.vy;if(c.x<0||c.x>w)c.vx*=-1;if(c.y<0||c.y>h)c.vy*=-1;ctx.fillStyle="#f1c40f";ctx.beginPath();ctx.arc(c.x,c.y,15,0,Math.PI*2);ctx.fill();}); Competition.players.forEach((p,idx)=>{if(p.isPlayer){p.x+=Competition.joystick.vecX*5;p.y+=Competition.joystick.vecY*5;}else{if(!p.t||Math.random()<0.05)p.t=Competition.entities[Math.floor(Math.random()*Competition.entities.length)];if(p.t){let dx=p.t.x-p.x,dy=p.t.y-p.y,d=Math.hypot(dx,dy);if(d>0){p.x+=(dx/d)*3;p.y+=(dy/d)*3;}}}p.x=Math.max(20,Math.min(w-20,p.x));p.y=Math.max(20,Math.min(h-20,p.y));drawFace(ctx,p.x,p.y,idx===0?Player:NPCs[idx],3);for(let i=Competition.entities.length-1;i>=0;i--){if(Math.hypot(p.x-Competition.entities[i].x,p.y-Competition.entities[i].y)<50){Competition.entities.splice(i,1);if(p.isPlayer){Competition.score=Math.min(100,Competition.score+10);document.getElementById('c-score').innerText=Competition.score;}Competition.entities.push({x:Math.random()*w,y:Math.random()*h,vx:Math.random()*4-2,vy:Math.random()*4-2});}}}); },
-    setupDodge: () => { Competition.entities=[{x:Competition.canvas.width/2,y:Competition.canvas.height-70,isPlayer:true}]; Competition.items=[]; },
-    loopDodge: (ctx, w, h) => { ctx.fillStyle="#4fc3f7";ctx.fillRect(0,0,w,h);let p=Competition.entities[0];p.x+=Competition.joystick.vecX*8;p.x=Math.max(30,Math.min(w-30,p.x));drawFace(ctx,p.x,p.y,Player,3.5);if(Math.random()<0.08)Competition.items.push({x:Math.random()*(w-40)+20,y:-40,type:Math.random()<0.3?'star':'bomb',speed:5+Math.random()*4});for(let i=Competition.items.length-1;i>=0;i--){let it=Competition.items[i];it.y+=it.speed;ctx.fillStyle=it.type==='star'?"#f1c40f":"#000";ctx.fillText(it.type==='star'?"★":"💣",it.x-10,it.y);if(Math.hypot(p.x-it.x,p.y-it.y)<50){if(it.type==='star')Competition.score=Math.min(100,Competition.score+10);else Competition.score=Math.max(0,Competition.score-10);document.getElementById('c-score').innerText=Competition.score;Competition.items.splice(i,1);}else if(it.y>h+50)Competition.items.splice(i,1);} },
-    setupPose: () => { Competition.entities=[{x:Competition.canvas.width/2,y:Competition.canvas.height/2,isPlayer:true}];Competition.poseState={flashing:false,flashTimer:0,nextFlash:100}; },
-    loopPose: (ctx, w, h) => { let ps=Competition.poseState;ps.flashTimer++;if(ps.flashTimer>ps.nextFlash){ps.flashing=true;if(ps.flashTimer>ps.nextFlash+60){ps.flashing=false;ps.flashTimer=0;ps.nextFlash=100+Math.random()*100;Competition.score+=20;document.getElementById('c-score').innerText=Competition.score;}}ctx.fillStyle=ps.flashing?"#fff":"#6c5ce7";ctx.fillRect(0,0,w,h);let p=Competition.entities[0];if(!ps.isPosing&&!ps.flashing){p.x+=Competition.joystick.vecX*4;p.y+=Competition.joystick.vecY*4;}if(ps.flashing&&!ps.isPosing)Competition.score-=1;drawFace(ctx,p.x,p.y,Player,ps.isPosing?2.5:2);if(ps.isPosing){ctx.strokeStyle="yellow";ctx.lineWidth=3;ctx.strokeRect(p.x-15,p.y-15,30,30);} },
+    // --- SETUP LOGIC GAME ---
 
+    // 1. SHOE TOSS (Ném giày)
+    setupShoe: () => {
+        Competition.shoeState = {
+            barX: 0,
+            dir: 1,
+            speed: 15,
+            phase: 'aiming',
+            shoeX: 50,
+            shoeY: 0,
+            shoeVX: 0,
+            shoeVY: 0,
+            rot: 0,
+            distance: 0
+        };
+    },
+
+    loopShoe: (ctx, w, h) => {
+        let s = Competition.shoeState;
+
+        // Vẽ nền trời và đất
+        ctx.fillStyle = "#48dbfb";
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = "#2ecc71";
+        ctx.fillRect(0, h - 60, w, 60);
+
+        if (s.phase === 'aiming') {
+            // Giai đoạn ngắm
+            drawFace(ctx, 50, h - 90, Player, 3);
+            
+            // Vẽ thanh lực
+            ctx.fillStyle = "#555";
+            ctx.fillRect(50, h / 2 - 20, w - 100, 40);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(50 + s.barX, h / 2 - 30, 10, 60);
+
+            // Di chuyển thanh lực
+            s.barX += s.speed * s.dir;
+            if (s.barX > w - 110 || s.barX < 0) s.dir *= -1;
+
+        } else {
+            // Giai đoạn giày bay
+            s.shoeX += s.shoeVX;
+            s.shoeY += s.shoeVY;
+            s.shoeVY += 0.5; // Trọng lực
+            s.rot += 0.2;
+            s.distance = Math.min(100, (s.shoeX / w) * 100);
+
+            // Vẽ chiếc giày xoay
+            ctx.save();
+            ctx.translate(s.shoeX, s.shoeY);
+            ctx.rotate(s.rot);
+            ctx.fillStyle = "#d63031";
+            ctx.fillRect(-10, -5, 20, 10);
+            ctx.restore();
+
+            drawFace(ctx, 50, h - 90, Player, 3);
+
+            // Hiển thị khoảng cách
+            ctx.fillStyle = "#2f3542";
+            ctx.font = "30px Arial";
+            ctx.fillText(Math.floor(s.distance) + "m", w / 2, h / 2);
+
+            // Kiểm tra chạm đất
+            if (s.shoeY > h - 60) Competition.finish(s.distance);
+        }
+    },
+
+    calcShoeTrajectory: () => {
+        let w = Competition.canvas.width;
+        // Tính lực dựa trên vị trí thanh bar (càng gần đích càng mạnh)
+        let power = 1.0 - Math.abs((w - 50) - (Competition.shoeState.barX + 50)) / w;
+        
+        Competition.shoeState.shoeX = 50;
+        Competition.shoeState.shoeY = Competition.canvas.height - 90;
+        Competition.shoeState.shoeVX = 15 * power;
+        Competition.shoeState.shoeVY = -12;
+    },
+
+    // 2. RUN (Chạy đua)
+    setupRun: () => {
+        Competition.entities = [
+            { id: 'p', x: 20, y: 100, isPlayer: true },
+            { id: 0, x: 20, y: 150, isPlayer: false },
+            { id: 1, x: 20, y: 200, isPlayer: false }
+        ];
+    },
+
+    loopRun: (ctx, w, h) => {
+        ctx.fillStyle = "#e17055";
+        ctx.fillRect(0, 0, w, h);
+
+        // Vẽ vạch đích
+        let fX = w - 50;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(fX, 0, 20, h);
+
+        Competition.entities.forEach(e => {
+            if (!e.isPlayer) e.x += 3 + Math.random(); // NPC tự chạy
+
+            drawFace(ctx, e.x, e.y, e.isPlayer ? Player : NPCs[e.id], 1.5);
+
+            if (e.isPlayer) {
+                Competition.score = Math.min(100, Math.floor((e.x / fX) * 100));
+                document.getElementById('c-score').innerText = Competition.score + "/100";
+            }
+
+            if (e.x > fX && e.isPlayer) Competition.finish(100);
+        });
+    },
+
+    // 3. PUSH (Đẩy Sumo)
+    setupPush: () => {
+        let cx = Competition.canvas.width / 2;
+        let cy = Competition.canvas.height / 2;
+        Competition.entities = [];
+        
+        SpecialEvent.teams.forEach((t, i) => {
+            let ang = i * (Math.PI * 2 / SpecialEvent.teams.length);
+            Competition.entities.push({
+                id: i,
+                char: t.leader,
+                x: cx + Math.cos(ang) * 120,
+                y: cy + Math.sin(ang) * 120,
+                r: 25,
+                vx: 0,
+                vy: 0,
+                isPlayer: t.members.some(m => m.id === 'p'),
+                mass: 1.2
+            });
+        });
+    },
+
+    loopPush: (ctx, w, h) => {
+        // Vẽ sàn đấu
+        ctx.fillStyle = "#d3a675";
+        ctx.fillRect(0, 0, w, h);
+        let cx = w / 2, cy = h / 2, r = Math.min(w, h) * 0.4;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fillStyle = "#f5e6ca"; ctx.fill();
+        ctx.lineWidth = 8; ctx.strokeStyle = "#e74c3c"; ctx.stroke();
+
+        // Xử lý từng nhân vật
+        Competition.entities.forEach(e => {
+            if (e.elim) return;
+
+            if (e.isPlayer) {
+                // Di chuyển bằng Joystick
+                e.vx += Competition.joystick.vecX * 0.8;
+                e.vy += Competition.joystick.vecY * 0.8;
+            } else {
+                // AI đuổi theo người chơi
+                let t = Competition.entities.find(o => o.isPlayer && !o.elim);
+                if (t) {
+                    let dx = t.x - e.x, dy = t.y - e.y, d = Math.hypot(dx, dy);
+                    if (d > 0) {
+                        e.vx += (dx / d) * 0.3;
+                        e.vy += (dy / d) * 0.3;
+                    }
+                }
+            }
+
+            // Ma sát và cập nhật vị trí
+            e.vx *= 0.92; e.vy *= 0.92;
+            e.x += e.vx; e.y += e.vy;
+
+            drawFace(ctx, e.x, e.y, e.char, 3.5);
+
+            // Kiểm tra rơi khỏi sàn
+            if (Math.hypot(e.x - cx, e.y - cy) > r) {
+                e.elim = true;
+                if (e.isPlayer) Competition.finish(10);
+            }
+        });
+
+        // Xử lý va chạm giữa các nhân vật
+        for (let i = 0; i < Competition.entities.length; i++) {
+            for (let j = i + 1; j < Competition.entities.length; j++) {
+                let a = Competition.entities[i];
+                let b = Competition.entities[j];
+                
+                if (a.elim || b.elim) continue;
+
+                let dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy);
+                if (d < 60) {
+                    let an = Math.atan2(dy, dx), f = 3;
+                    let tx = Math.cos(an) * f, ty = Math.sin(an) * f;
+                    
+                    a.vx -= tx / a.mass; a.vy -= ty / a.mass;
+                    b.vx += tx / b.mass; b.vy += ty / b.mass;
+                }
+            }
+        }
+
+        // Kiểm tra chiến thắng (chỉ còn mình người chơi hoặc NPC)
+        if (Competition.entities.filter(e => !e.elim && !e.isPlayer).length === 0) {
+            Competition.finish(100);
+        }
+    },
+
+    // 4. CATCH (Bắt gà)
+    setupCatch: () => {
+        Competition.entities = [];
+        // Tạo gà
+        for (let i = 0; i < 10; i++) {
+            Competition.entities.push({
+                x: Math.random() * 400,
+                y: Math.random() * 300,
+                vx: Math.random() * 4 - 2,
+                vy: Math.random() * 4 - 2
+            });
+        }
+        // Tạo người chơi và NPC
+        Competition.players = [
+            { x: 200, y: 200, isPlayer: true },
+            { x: 220, y: 220, isPlayer: false },
+            { x: 200, y: 220, isPlayer: false }
+        ];
+    },
+
+    loopCatch: (ctx, w, h) => {
+        ctx.fillStyle = "#55efc4";
+        ctx.fillRect(0, 0, w, h);
+
+        // Vẽ và di chuyển gà
+        Competition.entities.forEach(c => {
+            c.x += c.vx; c.y += c.vy;
+            if (c.x < 0 || c.x > w) c.vx *= -1;
+            if (c.y < 0 || c.y > h) c.vy *= -1;
+            
+            ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(c.x, c.y, 15, 0, Math.PI * 2); ctx.fill();
+        });
+
+        // Xử lý người chơi và NPC
+        Competition.players.forEach((p, idx) => {
+            if (p.isPlayer) {
+                p.x += Competition.joystick.vecX * 5;
+                p.y += Competition.joystick.vecY * 5;
+            } else {
+                // AI NPC
+                if (!p.t || Math.random() < 0.05) {
+                    p.t = Competition.entities[Math.floor(Math.random() * Competition.entities.length)];
+                }
+                if (p.t) {
+                    let dx = p.t.x - p.x, dy = p.t.y - p.y, d = Math.hypot(dx, dy);
+                    if (d > 0) {
+                        p.x += (dx / d) * 3;
+                        p.y += (dy / d) * 3;
+                    }
+                }
+            }
+
+            // Giới hạn biên
+            p.x = Math.max(20, Math.min(w - 20, p.x));
+            p.y = Math.max(20, Math.min(h - 20, p.y));
+
+            drawFace(ctx, p.x, p.y, idx === 0 ? Player : NPCs[idx], 3);
+
+            // Kiểm tra bắt gà
+            for (let i = Competition.entities.length - 1; i >= 0; i--) {
+                if (Math.hypot(p.x - Competition.entities[i].x, p.y - Competition.entities[i].y) < 50) {
+                    Competition.entities.splice(i, 1);
+                    if (p.isPlayer) {
+                        Competition.score = Math.min(100, Competition.score + 10);
+                        document.getElementById('c-score').innerText = Competition.score;
+                    }
+                    // Spawn gà mới
+                    Competition.entities.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vx: Math.random() * 4 - 2,
+                        vy: Math.random() * 4 - 2
+                    });
+                }
+            }
+        });
+    },
+
+    // 5. DODGE (Né bom)
+    setupDodge: () => {
+        Competition.entities = [{
+            x: Competition.canvas.width / 2,
+            y: Competition.canvas.height - 70,
+            isPlayer: true
+        }];
+        Competition.items = [];
+    },
+
+    loopDodge: (ctx, w, h) => {
+        ctx.fillStyle = "#4fc3f7";
+        ctx.fillRect(0, 0, w, h);
+
+        let p = Competition.entities[0];
+        p.x += Competition.joystick.vecX * 8;
+        p.x = Math.max(30, Math.min(w - 30, p.x));
+
+        drawFace(ctx, p.x, p.y, Player, 3.5);
+
+        // Sinh vật phẩm
+        if (Math.random() < 0.08) {
+            Competition.items.push({
+                x: Math.random() * (w - 40) + 20,
+                y: -40,
+                type: Math.random() < 0.3 ? 'star' : 'bomb',
+                speed: 5 + Math.random() * 4
+            });
+        }
+
+        // Di chuyển và kiểm tra va chạm vật phẩm
+        for (let i = Competition.items.length - 1; i >= 0; i--) {
+            let it = Competition.items[i];
+            it.y += it.speed;
+
+            ctx.fillStyle = it.type === 'star' ? "#f1c40f" : "#000";
+            ctx.fillText(it.type === 'star' ? "★" : "💣", it.x - 10, it.y);
+
+            if (Math.hypot(p.x - it.x, p.y - it.y) < 50) {
+                if (it.type === 'star') Competition.score = Math.min(100, Competition.score + 10);
+                else Competition.score = Math.max(0, Competition.score - 10);
+                
+                document.getElementById('c-score').innerText = Competition.score;
+                Competition.items.splice(i, 1);
+            } else if (it.y > h + 50) {
+                Competition.items.splice(i, 1);
+            }
+        }
+    },
+
+    // 6. POSE (Tạo dáng)
+    setupPose: () => {
+        Competition.entities = [{
+            x: Competition.canvas.width / 2,
+            y: Competition.canvas.height / 2,
+            isPlayer: true
+        }];
+        Competition.poseState = { flashing: false, flashTimer: 0, nextFlash: 100 };
+    },
+
+    loopPose: (ctx, w, h) => {
+        let ps = Competition.poseState;
+        ps.flashTimer++;
+
+        // Logic Flash màn hình
+        if (ps.flashTimer > ps.nextFlash) {
+            ps.flashing = true;
+            if (ps.flashTimer > ps.nextFlash + 60) {
+                ps.flashing = false;
+                ps.flashTimer = 0;
+                ps.nextFlash = 100 + Math.random() * 100;
+                Competition.score += 20;
+                document.getElementById('c-score').innerText = Competition.score;
+            }
+        }
+
+        ctx.fillStyle = ps.flashing ? "#fff" : "#6c5ce7";
+        ctx.fillRect(0, 0, w, h);
+
+        if (ps.flashing) {
+            ctx.fillStyle = "red";
+            ctx.font = "30px Arial";
+            ctx.fillText("POSE!", w / 2 - 40, h / 2 - 50);
+        }
+
+        let p = Competition.entities[0];
+
+        // Di chuyển khi không Flash
+        if (!ps.isPosing && !ps.flashing) {
+            p.x += Competition.joystick.vecX * 4;
+            p.y += Competition.joystick.vecY * 4;
+        }
+
+        // Trừ điểm nếu không tạo dáng khi Flash
+        if (ps.flashing && !ps.isPosing) {
+            Competition.score -= 1;
+        }
+
+        drawFace(ctx, p.x, p.y, Player, ps.isPosing ? 2.5 : 2);
+
+        // Hiệu ứng khi đang tạo dáng
+        if (ps.isPosing) {
+            ctx.strokeStyle = "yellow";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(p.x - 15, p.y - 15, 30, 30);
+        }
+    },
     // --- CÁC HÀM HIỂN THỊ KẾT QUẢ ĐÃ ĐƯỢC CHỈNH SỬA CLASS ---
     
     finish: (customScore = null) => {
-        Competition.active = false; cancelAnimationFrame(Competition.loopId);
+        Competition.active = false; 
+        cancelAnimationFrame(Competition.loopId);
         let finalScore = Math.min(100, Math.max(0, Math.floor(customScore !== null ? customScore : Competition.score)));
         let myTeamIndex = SpecialEvent.teams.findIndex(t => t.members.some(m => m.id === 'p'));
         let roundResults = [];
@@ -416,7 +791,8 @@ var Competition = {
 
         let tableRows = SpecialEvent.teams.map((t, i) => {
             let bonus = rewards[i] || 0;
-            if (t.members.some(m => m.id === 'p')) { App.lastEventBonus = bonus; App.compScore = t.eventScore; App.accumulatedScore = t.eventScore; }
+            if (t.members.some(m => m.id === 'p')) { App.lastEventBonus = bonus; 
+            App.compScore = t.eventScore; App.accumulatedScore = t.eventScore; }
             t.members.forEach(m => { if (m.id !== 'p') m.totalVote = (m.totalVote || 0) + bonus; });
             let isMyTeam = t.members.some(m => m.id === 'p');
             let rankIcon = (i + 1) === 1 ? "👑" : `#${i + 1}`;

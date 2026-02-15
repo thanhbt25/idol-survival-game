@@ -467,46 +467,6 @@ canvas {
 }
 .team-score-bar.my-team .ts-rank { background: #feca57; color: #222; }
 
-#mobile-controls {
-    display: none; /* Mặc định ẩn trên PC */
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    z-index: 1000;
-    touch-action: none; /* Ngăn chặn cuộn trang khi chạm vào */
-}
-
-#joystick-base {
-    width: 120px;
-    height: 120px;
-    background: rgba(255, 255, 255, 0.1); /* Màu nền rất mờ */
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 0.3s;
-    opacity: 0.3; /* Rất mờ khi không chạm */
-}
-
-/* Khi chạm vào thì sáng lên một chút */
-#joystick-base.active {
-    opacity: 0.8;
-    background: rgba(255, 255, 255, 0.2);
-}
-
-#joystick-stick {
-    width: 50px;
-    height: 50px;
-    background: rgba(255, 71, 87, 0.8); /* Màu đỏ nhạt của theme game */
-    border-radius: 50%;
-    position: absolute;
-    pointer-events: none; /* Để sự kiện chạm xuyên qua */
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    transform: translate(0, 0); /* Sẽ được JS cập nhật */
-}
-
 .result-box, #create-box {
     max-height: 80% !important;
     width: 90% !important;
@@ -537,7 +497,35 @@ canvas {
 
 /* Chỉ hiện khi màn hình dọc trên mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
-    
+    #mobile-controls {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 99999; /* Luôn nổi lên trên cùng */
+        display: none;  /* Mặc định ẩn */
+    }
+
+    #joystick-base {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        position: relative;
+        backdrop-filter: blur(4px);
+    }
+
+    #joystick-stick {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        margin-top: -25px; margin-left: -25px; /* Căn giữa thủ công */
+        pointer-events: none; /* Để cảm ứng xuyên qua núm vào đế */
+    }
     /* 1. Thu nhỏ các nút bấm chính (Relations, Settings) */
     button {
         padding: 4px 8px !important;
@@ -620,18 +608,6 @@ canvas {
     
     .color-label { font-size: 6px !important; margin-bottom: 2px !important; }
     
-    /* Joystick nhỏ lại một chút và lùi vào góc */
-    #joystick-base {
-        width: 80px !important;
-        height: 80px !important;
-        bottom: 15px !important;
-        left: 15px !important;
-    }
-    #joystick-stick {
-        width: 30px !important;
-        height: 30px !important;
-    }
-
     #npc-intro-screen > div {
         width: 98% !important; 
         height: 98% !important;
