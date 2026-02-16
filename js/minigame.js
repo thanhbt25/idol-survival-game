@@ -229,13 +229,22 @@ var Minigame = {
     retry: () => Game.startPractice(Minigame.type),
     
     exit: () => { 
-        Minigame.active = false; clearInterval(Minigame.timer);
-        if (Minigame.listener) window.removeEventListener('keydown', Minigame.listener);
+        Minigame.active = false; 
+        clearInterval(Minigame.timer);
+        
+        if (Minigame.listener) {
+            window.removeEventListener('keydown', Minigame.listener);
+            Minigame.listener = null; 
+        }
+        
         document.getElementById('minigame-result-overlay').style.display = 'none'; 
-        Game.enterHub(); 
+        
+        if (typeof Game !== 'undefined') {
+            Game.enterHub(); 
+        }
     },
 
-vocal: (c, params) => {
+    vocal: (c, params) => {
         const { cv, ctx, w, h } = Minigame.initCanvas(c);
         
         // Tỉ lệ scale dựa trên chiều cao (chuẩn 400px)
@@ -549,11 +558,15 @@ vocal: (c, params) => {
             } else {
                 Minigame.finish(false, 0);
             }
-        };
+        };  
 
-        window.addEventListener('keydown', (e) => {
+        Minigame.listener = (e) => {
             if (e.code === 'Space') checkHit(e);
+        }
+        window.addEventListener('keydown', (e) => {
+            Minigame.listener
         });
+
         cv.ontouchstart = checkHit;
         cv.onmousedown = checkHit;
     }

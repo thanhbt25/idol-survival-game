@@ -156,8 +156,96 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
     text-align: center; pointer-events: auto; z-index: 20;
     box-shadow: 6px 6px 0 rgba(0,0,0,0.2); border-radius: 8px;
 }
+
 #room-notification { top: 40%; width: 300px; }
-#interaction-modal { bottom: 20px; width: 80%; max-width: 400px; }
+
+#interaction-modal {
+    /* Vị trí cố định */
+    position: fixed;
+    bottom: 5%; /* Nhích lên cao một chút cho dễ nhìn */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* Kích thước TO và CAO hơn */
+    width: 92%;
+    max-width: 650px;
+    min-height: 120px; /* Ép chiều cao tối thiểu lớn hẳn */
+    
+    /* Giao diện */
+    background: #fff;
+    border: 6px solid #2f3542; /* Viền dày chuẩn Pixel */
+    border-radius: 4px; /* Bo góc ít thôi cho nó vuông vức */
+    padding: 30px; /* Đệm thoáng bên trong */
+    box-shadow: 0 10px 0 rgba(0,0,0,0.5); /* Bóng đổ khối mạnh mẽ */
+    
+    /* Bố cục */
+    display: none;
+    flex-direction: column;
+    z-index: 20000;
+}
+
+/* Tên NPC */
+#dialogue-npc-name {
+    color: #ff4757;
+    /* SỬ DỤNG FONT PIXEL */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 20px !important; /* Cỡ chữ vừa phải với font này */
+    line-height: 1.5;
+    margin-bottom: 25px;
+    text-shadow: 2px 2px 0 #2f3542;
+    text-transform: uppercase;
+}
+
+/* Nội dung hội thoại */
+#dialogue-text {
+    color: #2f3542;
+    /* SỬ DỤNG FONT PIXEL */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 14px !important; /* Font pixel này khá to nên 14px là dễ đọc */
+    line-height: 1.8 !important; /* Giãn dòng rộng ra */
+    margin-bottom: 40px !important; /* Đẩy các nút bấm ra xa */
+    flex-grow: 1; /* Chiếm khoảng trống */
+}
+
+/* Container chứa nút */
+#dialogue-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Khoảng cách giữa các nút */
+}
+
+/* Nút lựa chọn */
+.dialogue-btn {
+    background: #f1f2f6;
+    border: 4px solid #2f3542;
+    border-radius: 4px;
+    padding: 15px 10px; /* Nút cao, dễ bấm */
+    
+    /* Font chữ nút */
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px; /* Cỡ chữ nút nhỏ hơn một chút */
+    color: #2f3542;
+    text-align: center;
+    text-transform: uppercase; /* Nút nên viết hoa hết */
+    
+    box-shadow: 0 6px 0 #bdc3c7; /* Bóng nút */
+    transition: all 0.1s;
+    cursor: pointer;
+}
+
+/* Hiệu ứng bấm nút */
+.dialogue-btn:active {
+    transform: translateY(6px); /* Nút lún xuống thật */
+    box-shadow: none;
+    background: #ffeaa7;
+    border-color: #e67e22;
+}
+
+#team-reveal-list {
+    flex-grow: 1;
+    overflow-y: auto; /* Cho phép cuộn nếu bảng dài */
+    min-height: 200px;
+}
 
 /* TEAM SELECT */
 #team-select-overlay {
@@ -244,6 +332,21 @@ canvas {
 #ranking-list {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;
 }
+
+
+#ranking-list .rank-card > div:first-child {
+    font-size: 18px !important;    
+    font-weight: bold !important;  
+    color: #2f3542 !important;     
+    margin-bottom: 4px !important;       
+    text-shadow: 1px 1px 0px #fff; 
+    line-height: 1 !important;           
+    
+    text-align: center !important;
+    width: 100% !important;         /* Ép khung rộng ra hết cỡ thì mới căn giữa được */
+    display: block !important;      /* Đảm bảo nó là dạng khối để nhận width 100% */
+}
+
 .rank-card {
     background: #fff;
     border: 3px solid #2f3542;
@@ -498,11 +601,7 @@ canvas {
 /* Chỉ hiện khi màn hình dọc trên mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
     #mobile-controls {
-        position: fixed;
-        bottom: 30px;
-        left: 30px;
-        z-index: 99999; /* Luôn nổi lên trên cùng */
-        display: none;  /* Mặc định ẩn */
+        display: none !important;  /* Mặc định ẩn */
     }
 
     #joystick-base {
@@ -1417,3 +1516,37 @@ canvas {
     from { transform: scale(1); }
     to { transform: scale(1.05); }
 }
+
+@media (min-width: 1024px) {
+    #npc-list-grid {
+        /* Tăng số lượng cột bằng cách giảm min-width của mỗi cột */
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+        
+        /* Giảm khoảng cách giữa các thẻ xuống cực nhỏ */
+        gap: 6px; 
+        
+        /* Căn giữa grid trong màn hình to */
+        max-width: 900px;
+        margin: 0 auto;
+        max-height: 75vh; /* Tăng vùng nhìn thấy trên PC */
+    }
+
+    /* Thu nhỏ thẻ card trên PC */
+    .rank-card {
+        padding: 5px !important;      /* Giảm lề trong */
+        min-height: auto !important;  /* Bỏ chiều cao tối thiểu cứng */
+        font-size: 0.8em;             /* Giảm cỡ chữ */
+    }
+
+    /* Thu nhỏ avatar trên PC */
+    .rank-card > div:first-child {
+        width: 15px !important;       /* Avatar nhỏ lại */
+        height: 15px !important;
+    }
+    
+    /* Ẩn bớt thông tin rườm rà nếu cần, hoặc chỉnh font siêu nhỏ */
+    .rank-card div {
+        line-height: 1.2;
+    }
+}
+

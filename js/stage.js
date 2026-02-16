@@ -315,9 +315,23 @@ var Stage = {
         Stage.realInit();
     },
 
+    cleanup: () => {
+        Stage.run = false;
+        if (Stage.audioElement) {
+            Stage.audioElement.pause();
+            Stage.audioElement.currentTime = 0;
+        }
+        if (Stage.actx && Stage.actx.state === 'running') {
+            Stage.actx.suspend();
+        }
+    },
+
     endSong: (winStatus = true) => {
         Stage.run = false; 
-        if (Stage.audioElement) Stage.audioElement.pause();
+        if (Stage.audioElement) {
+            Stage.audioElement.pause();
+            Stage.audioElement.currentTime = 0;
+        }
         window.onkeydown = null; window.onkeyup = null;
 
         // Xử lý Thất bại
@@ -411,9 +425,12 @@ var Stage = {
     },
 };
 
+/* --- OPTIMIZED FIREWORKS FOR MOBILE --- */
 var Fireworks = {
-    canvas: null, ctx: null, particles: [], active: false,
+    canvas: null, ctx: null, particles: [], active: false, loopId: null,
+    
     init: () => {
+        if (Fireworks.active) return;
         Fireworks.canvas = document.getElementById('fireworks-canvas');
         Fireworks.ctx = Fireworks.canvas.getContext('2d');
         const c = document.getElementById('game-container');
@@ -422,38 +439,59 @@ var Fireworks = {
         Fireworks.active = true;
         Fireworks.loop();
     },
+
     create: (x, y) => {
+        // MOBILE: Giảm số lượng hạt từ 30 -> 10 để đỡ lag
+        const particleCount = (window.innerWidth < 800) ? 10 : 30;
         const colors = ['#ff6b81', '#feca57', '#54a0ff', '#1dd1a1', '#fff'];
-        for(let i=0; i<30; i++) {
+        
+        for(let i=0; i < particleCount; i++) {
             Fireworks.particles.push({
                 x: x, y: y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                life: 100,
+                // Giảm tốc độ bay để nhìn mượt hơn
+                vx: (Math.random() - 0.5) * 4, 
+                vy: (Math.random() - 0.5) * 4,
+                life: 80 + Math.random() * 20,
                 color: colors[Math.floor(Math.random() * colors.length)],
-                size: Math.random() * 3 + 1
+                size: Math.random() * 2 + 1
             });
         }
     },
+
     loop: () => {
         if(!Fireworks.active) return;
         const ctx = Fireworks.ctx;
-        ctx.globalCompositeOperation = 'destination-out';
+        
+        // Hiệu ứng mờ đuôi (Trail) - Tối ưu performance
+        ctx.globalCompositeOperation = 'source-over';
         ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; 
         ctx.fillRect(0, 0, Fireworks.canvas.width, Fireworks.canvas.height);
-        ctx.globalCompositeOperation = 'lighter';
-        if(Math.random() < 0.05) {
+        
+        // Tắt 'lighter' trên mobile vì nó ngốn GPU kinh khủng
+        ctx.globalCompositeOperation = 'source-over'; 
+
+        // Tỉ lệ bắn pháo hoa: PC 5%, Mobile 2%
+        if(Math.random() < (window.innerWidth < 800 ? 0.02 : 0.05)) {
             Fireworks.create(Math.random() * Fireworks.canvas.width, Math.random() * Fireworks.canvas.height / 2);
         }
+
         for(let i=Fireworks.particles.length-1; i>=0; i--) {
             let p = Fireworks.particles[i];
             p.x += p.vx; p.y += p.vy; p.vy += 0.05; 
-            p.life--; p.size *= 0.96;
+            p.life--; 
+            
             ctx.fillStyle = p.color;
             ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+            
             if(p.life <= 0) Fireworks.particles.splice(i, 1);
         }
-        requestAnimationFrame(Fireworks.loop);
+        Fireworks.loopId = requestAnimationFrame(Fireworks.loop);
     },
-    stop: () => { Fireworks.active = false; }
+
+    stop: () => { 
+        Fireworks.active = false; 
+        if(Fireworks.loopId) cancelAnimationFrame(Fireworks.loopId);
+        if(Fireworks.ctx) Fireworks.ctx.clearRect(0, 0, Fireworks.canvas.width, Fireworks.canvas.height);
+        Fireworks.particles = [];
+    }
 };

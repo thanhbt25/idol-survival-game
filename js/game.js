@@ -35,90 +35,67 @@ function resizeGame() {
 
 var Joystick = {
     active: false,
-    base: null,
-    stick: null,
-    maxRadius: 35, // Giới hạn di chuyển của cần gạt
-    valX: 0, // Giá trị từ -1 đến 1
-    valY: 0, // Giá trị từ -1 đến 1
-    touchId: null,
+    initialized: false,
+    valX: 0, // Giá trị từ -1 đến 1 (trái/phải)
+    valY: 0, // Giá trị từ -1 đến 1 (lên/xuống)
+    
+    originX: 0, // Tọa độ gốc khi bắt đầu chạm
+    originY: 0,
+    maxRadius: 50, // Khoảng cách kéo tối đa để đạt tốc độ max
 
     init: () => {
-        Joystick.base = document.getElementById('joystick-base');
-        Joystick.stick = document.getElementById('joystick-stick');
-        
-        if (!Joystick.base) return;
+        if (Joystick.initialized) return; 
+        Joystick.initialized = true;
+        const zone = document.body; // Lắng nghe toàn bộ màn hình
 
-        // Sự kiện bắt đầu chạm
-        Joystick.base.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        // 1. SỰ KIỆN BẮT ĐẦU CHẠM
+        zone.addEventListener('touchstart', (e) => {
+            // Nếu người chơi bấm vào nút (Button) thì KHÔNG kích hoạt di chuyển
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('.interactive')) {
+                return;
+            }
+
             Joystick.active = true;
-            Joystick.base.classList.add('active');
-            Joystick.touchId = e.changedTouches[0].identifier;
-            Joystick.handleMove(e.changedTouches[0]);
-        }, { passive: false });
-
-        // Sự kiện di chuyển ngón tay
-        Joystick.base.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!Joystick.active) return;
+            // Lưu vị trí chạm đầu tiên làm TÂM
+            Joystick.originX = e.touches[0].clientX;
+            Joystick.originY = e.touches[0].clientY;
             
-            // Tìm điểm chạm đúng trong danh sách touches
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === Joystick.touchId) {
-                    Joystick.handleMove(e.changedTouches[i]);
-                    break;
-                }
-            }
+            Joystick.valX = 0;
+            Joystick.valY = 0;
         }, { passive: false });
 
-        // Sự kiện thả tay
-        const endTouch = (e) => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                if (e.changedTouches[i].identifier === Joystick.touchId) {
-                    Joystick.reset();
-                    break;
-                }
+        // 2. SỰ KIỆN DI CHUYỂN NGÓN TAY
+        zone.addEventListener('touchmove', (e) => {
+            if (!Joystick.active) return;
+            // e.preventDefault(); // Bỏ comment dòng này nếu muốn chặn kéo trang web (scroll)
+
+            const touch = e.touches[0];
+            let dx = touch.clientX - Joystick.originX;
+            let dy = touch.clientY - Joystick.originY;
+            
+            // Tính khoảng cách
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Nếu kéo quá xa, giới hạn lại trong vòng tròn maxRadius
+            if (distance > Joystick.maxRadius) {
+                const ratio = Joystick.maxRadius / distance;
+                dx *= ratio;
+                dy *= ratio;
             }
+
+            // Tính toán giá trị output (-1 đến 1)
+            Joystick.valX = dx / Joystick.maxRadius;
+            Joystick.valY = dy / Joystick.maxRadius;
+        }, { passive: false });
+
+        // 3. SỰ KIỆN THẢ TAY
+        const endTouch = () => {
+            Joystick.active = false;
+            Joystick.valX = 0;
+            Joystick.valY = 0;
         };
-        
-        Joystick.base.addEventListener('touchend', endTouch);
-        Joystick.base.addEventListener('touchcancel', endTouch);
-    },
-
-    handleMove: (touch) => {
-        const rect = Joystick.base.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-
-        // Tính khoảng cách từ tâm
-        let dx = touch.clientX - centerX;
-        let dy = touch.clientY - centerY;
-        
-        // Tính khoảng cách vector
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Giới hạn trong hình tròn (Clamp)
-        if (distance > Joystick.maxRadius) {
-            const ratio = Joystick.maxRadius / distance;
-            dx *= ratio;
-            dy *= ratio;
-        }
-
-        // Cập nhật giao diện (di chuyển cái núm)
-        Joystick.stick.style.transform = `translate(${dx}px, ${dy}px)`;
-
-        // Tính toán giá trị output (-1 đến 1) để nhân vật di chuyển
-        Joystick.valX = dx / Joystick.maxRadius;
-        Joystick.valY = dy / Joystick.maxRadius;
-    },
-
-    reset: () => {
-        Joystick.active = false;
-        Joystick.base.classList.remove('active');
-        Joystick.stick.style.transform = `translate(0px, 0px)`;
-        Joystick.valX = 0;
-        Joystick.valY = 0;
-        Joystick.touchId = null;
+        zone.addEventListener('touchend', endTouch);
+        zone.addEventListener('touchcancel', endTouch);
     }
 };
 
@@ -214,12 +191,10 @@ var Game = {
         const el = document.getElementById('mobile-controls');
         if (!el) return;
         
-        // Kiểm tra xem có phải điện thoại không
         const isMobile = window.innerWidth < 1024 || navigator.maxTouchPoints > 0;
 
         if (show && isMobile) {
             el.style.display = 'block';
-            if (Joystick.init) Joystick.init(); // Khởi tạo lại sự kiện chạm
         } else {
             el.style.display = 'none';
         }
@@ -432,7 +407,7 @@ var Game = {
         document.getElementById('stage-start-btn').style.display = 'none';
     },
 
-    toggleSettings: () => {
+toggleSettings: () => {
         if (App.screen === 'title-screen') return;
         App.paused = !App.paused; 
 
@@ -441,21 +416,15 @@ var Game = {
         if (App.paused) {
             overlay.style.display = 'flex';
             Game.updateSettingsUI();
-
             if (BGM.ctx && BGM.ctx.state === 'running') BGM.ctx.suspend();
-
             if (App.screen === 'stage-screen' && Stage.audioElement) {
                 Stage.audioElement.pause();
             }
-
         } else {
             overlay.style.display = 'none';
             if (BGM.ctx && BGM.ctx.state === 'suspended') BGM.ctx.resume();
 
-            if (App.screen === 'hub-screen') {
-                HubMap.loop(); 
-            } 
-            else if (App.screen === 'stage-screen') {
+            if (App.screen === 'stage-screen') {
                 if (Stage.audioElement) {
                     Stage.audioElement.play(); 
                 }
@@ -476,7 +445,6 @@ var Game = {
     },
 
     quitToTitle: () => {
-        Game.toggleJoystick(false);
         if(confirm("Quit to Title Screen? Unsaved progress will be lost.")) {
             App.paused = false;
             document.getElementById('settings-overlay').style.display = 'none';
@@ -521,11 +489,17 @@ var Game = {
         BGM.play('hub'); 
         Notify.show("WELCOME TO IDOL DORM!<br>DAY " + App.day);
         
-        Game.toggleJoystick(true); 
-        
+        document.getElementById('interaction-modal').style.display = 'none';
+
+        if (typeof Joystick !== 'undefined') Joystick.init();
+        Game.toggleJoystick(true);
+
         if (typeof HubMap !== 'undefined') {
-            HubMap.run = true;
-            HubMap.loop();
+            HubMap.stop(); 
+            
+            setTimeout(() => {
+                HubMap.start(); 
+            }, 20);
         }
     },
     
@@ -555,10 +529,6 @@ var Game = {
 
     // CẬP NHẬT HÀM NÀY TRONG js/game.js
     triggerStageSetup: () => {
-        // --- FIX LỖI TRÀN BỘ NHỚ (INFINITE LOOP) ---
-        // Thay vì gọi showScreen('hub-screen') (vốn sẽ gọi lại checkStageDay -> tạo vòng lặp),
-        // Ta tự tay thao tác DOM để hiện màn hình Hub mà không kích hoạt logic kiểm tra lại.
-        Game.toggleJoystick(false);
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('hub-screen').classList.add('active');
         App.screen = 'hub-screen';
@@ -665,56 +635,84 @@ var Game = {
 
     rest: () => { Player.stats.stamina=50; Notify.show("RESTED!"); Game.simDay(); },
 
-    // Chuyển hướng sang màn hình Reveal thay vì End luôn
+// 1. KẾT THÚC MÀN NHẢY
     finishStageDay: () => {
-        document.getElementById('stage-detail-overlay').style.display='none';
-        
-        // Nếu là ngày sự kiện (7, 14, 21): Vào màn hình công bố điểm đội
-        if (App.day === 7 || App.day === 14 || App.day === 21) {
-            Game.showTeamReveal();
+        document.getElementById('stage-detail-overlay').style.display = 'none';
+
+        // Check thiết bị
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
+
+        if (isMobile) {
+            // --- LOGIC CHO MOBILE ---
+            // Vì Mobile bỏ qua màn hình "Day Summary" nên ta phải TÍNH ĐIỂM VÀ CỘNG NGẦM ở đây
+            // (Copy logic tính toán từ showDaySummary sang để không bị mất điểm)
+            let sGame = App.compScore || 0;
+            let sBonus = App.lastEventBonus || 0;
+            let sStage = Math.floor(Stage.lastTotalScore || 0);
+            let sTotal = sGame + sBonus + sStage;
+
+            Player.totalVote += sTotal; // Cộng vote
+            
+            // Cộng fan
+            let fanMultiplier = 1 + (Player.stats.visual / 100);
+            let stageFans = Math.floor((sStage / 100) * fanMultiplier);
+            Player.fans += stageFans;
+
+            // Reset biến tạm
+            App.compScore = 0;
+            App.lastEventBonus = 0; 
+
+            // VÀO THẲNG TỔNG KẾT NGÀY (RANKING/LOẠI)
+            Game.finalizeDay();
         } 
-        // Nếu ngày thường hoặc ngày 30: Vào thẳng tổng kết cá nhân
         else {
-            Game.showDaySummary();
+            // --- LOGIC CHO PC ---
+            // Nếu là ngày sự kiện (7, 14, 21): Vào màn hình công bố điểm đội trước
+            if (App.day === 7 || App.day === 14 || App.day === 21) {
+                Game.showTeamReveal();
+            } 
+            // Ngày thường: Vào tổng kết cá nhân
+            else {
+                Game.showDaySummary();
+            }
         }
     },
 
-    // 2. HÀM MỚI: HIỂN THỊ ĐIỂM ĐỘI CHẠY CHẠY (Team Reveal)
+    // 2. HIỂN THỊ ĐIỂM ĐỘI (CHỈ PC - NGÀY SỰ KIỆN)
     showTeamReveal: () => {
         showScreen('team-reveal-screen');
         const list = document.getElementById('team-reveal-list');
         list.innerHTML = '';
-        document.getElementById('btn-reveal-next').style.display = 'none';
-
-        // Lấy danh sách team từ sự kiện
-        let teams = SpecialEvent.teams;
         
-        // Cập nhật điểm Stage cho đội của người chơi (Để hiển thị chính xác tổng điểm hôm nay)
+        const btnNext = document.getElementById('btn-reveal-next');
+        btnNext.style.display = 'none';
+
+        // --- GÁN SỰ KIỆN NÚT NEXT ---
+        // Trên PC, sau khi xem điểm team -> Sang trang tổng kết cá nhân
+        btnNext.onclick = () => {
+            Game.showDaySummary();
+        };
+
+        // Lấy danh sách team
+        let teams = SpecialEvent.teams;
         let myTeam = teams.find(t => t.members.some(m => m.id === 'p'));
         if (myTeam) {
-            // Điểm team hôm nay = Điểm Minigame + Điểm Bonus + Điểm Stage (của Player đại diện)
-            // Lưu ý: Đây là điểm hiển thị cho vui, còn điểm thực tế đã cộng vào Player.totalVote rồi
-            // Ta cộng thêm Stage Score vào để team mình trông "khủng" hơn
             myTeam.eventScore += Math.floor(Stage.lastTotalScore); 
         }
 
-        // Tạo dữ liệu điểm ảo cho các đội khác để tạo kịch tính
-        // Yêu cầu: Random > 15,000 + Bonus
+        // Tạo dữ liệu giả cho đội khác
         teams.forEach(t => {
             if (!t.members.some(m => m.id === 'p')) {
-                // Đội máy: Random điểm Stage giả (15k - 25k) + Điểm sự kiện cũ
                 let fakeStageScore = 15000 + Math.floor(Math.random() * 10000);
                 t.finalDailyScore = t.eventScore + fakeStageScore; 
             } else {
-                // Đội mình
-                t.finalDailyScore = t.eventScore; // eventScore lúc này đã bao gồm StageScore cộng ở trên
+                t.finalDailyScore = t.eventScore; 
             }
         });
 
-        // Sắp xếp lại theo điểm tổng ngày hôm nay
         teams.sort((a,b) => b.finalDailyScore - a.finalDailyScore);
 
-        // Render HTML
+        // Render
         teams.forEach((t, i) => {
             let isMyTeam = t.members.some(m => m.id === 'p');
             let div = document.createElement('div');
@@ -727,80 +725,60 @@ var Game = {
             `;
             list.appendChild(div);
 
-            // Animation số chạy
             setTimeout(() => {
                 div.classList.add('revealed');
-                // Chạy thanh fill
-                let percent = Math.min(100, (t.finalDailyScore / 40000) * 100); // 40k là max ước lượng
+                let percent = Math.min(100, (t.finalDailyScore / 40000) * 100);
                 document.getElementById(`ts-fill-${i}`).style.width = `${percent}%`;
-                
-                // Chạy số
                 Game.animateValue(`ts-val-${i}`, 0, t.finalDailyScore, 2000);
-            }, i * 200); // Delay từng dòng cho kịch tính
+            }, i * 200);
         });
 
-        // Hiện nút Next sau khi chạy xong
         setTimeout(() => {
-            document.getElementById('btn-reveal-next').style.display = 'block';
+            btnNext.style.display = 'block';
         }, teams.length * 200 + 2000);
     },
 
-    // Hàm phụ trợ: Chạy số
-    animateValue: (id, start, end, duration) => {
-        let obj = document.getElementById(id);
-        let range = end - start;
-        let minTimer = 50;
-        let stepTime = Math.abs(Math.floor(duration / (range / 100))); // Chạy nhảy cóc cho nhanh
-        stepTime = Math.max(stepTime, minTimer);
-        let startTime = new Date().getTime();
-        let endTime = startTime + duration;
-        let timer;
-      
-        function run() {
-            let now = new Date().getTime();
-            let remaining = Math.max((endTime - now) / duration, 0);
-            let value = Math.round(end - (remaining * range));
-            obj.innerHTML = formatNum(value);
-            if (value == end) {
-                clearInterval(timer);
-            }
-        }
-        
-        timer = setInterval(run, stepTime);
-        run();
-    },
-
-    // 3. HÀM MỚI: TỔNG KẾT CÁ NHÂN (Day Summary)
+    // 3. TỔNG KẾT CÁ NHÂN (CHỈ PC - HOẶC MOBILE NẾU MUỐN SHOW)
     showDaySummary: () => {
         showScreen('day-summary-screen');
         
-        // 1. Lấy các đầu điểm
-        let sGame = App.compScore || 0;         // Điểm chơi Minigame (Ném giày, bắt gà...)
-        let sBonus = App.lastEventBonus || 0;   // Điểm thưởng hạng Nhất/Nhì...
-        let sStage = Math.floor(Stage.lastTotalScore || 0); // Điểm nhảy Audition
-        
-        // 2. Tính tổng
+        // 1. Tính toán
+        let sGame = App.compScore || 0;    
+        let sBonus = App.lastEventBonus || 0; 
+        let sStage = Math.floor(Stage.lastTotalScore || 0);
         let sTotal = sGame + sBonus + sStage;
 
-        // 3. [QUAN TRỌNG] CỘNG TẤT CẢ VÀO TỔNG PHIẾU BẦU CỦA NGƯỜI CHƠI
+        // 2. Cộng điểm
         Player.totalVote += sTotal;
 
-        // 4. Cộng Fan (Chỉ tính dựa trên màn trình diễn Stage như cũ)
+        // 3. Cộng Fan
         let fanMultiplier = 1 + (Player.stats.visual / 100);
         let stageFans = Math.floor((sStage / 100) * fanMultiplier);
         Player.fans += stageFans;
 
-        // 5. Reset biến tạm
+        // 4. Reset
         App.compScore = 0;
         App.lastEventBonus = 0; 
 
-        // 6. Hiển thị ra màn hình
+        // 5. Hiển thị
         document.getElementById('sum-game').innerText = "+" + formatNum(sGame);
         document.getElementById('sum-bonus').innerText = "+" + formatNum(sBonus);
         document.getElementById('sum-stage').innerText = "+" + formatNum(sStage);
         
-        // Hiệu ứng số tổng chạy tăng dần cho sướng mắt
         Game.animateValue('sum-total', 0, sTotal, 1500);
+
+        // --- QUAN TRỌNG: CLICK ĐỂ SANG FINALIZEDAY ---
+        // Gán sự kiện click vào màn hình này để chuyển sang trang Ranking/Kết thúc ngày
+        const screen = document.getElementById('day-summary-screen');
+        screen.onclick = () => {
+            screen.onclick = null; // Tránh click 2 lần
+            Game.finalizeDay();
+        };
+        
+        // Hoặc tạo một thông báo nhỏ nhắc người chơi bấm để tiếp tục
+        setTimeout(() => {
+           Notify.show("Click anywhere to continue...");
+        }, 2000);
     },
 
     // 4. HÀM MỚI: KẾT THÚC NGÀY (Nối vào logic cũ)
@@ -816,8 +794,6 @@ var Game = {
 
     simDay: () => {
         document.getElementById('interaction-modal').style.display = 'none';
-
-        Game.toggleJoystick(false);
 
         if(C.ELIM_DAYS.includes(App.day)) {
             showScreen('result-screen'); 
@@ -974,65 +950,67 @@ var Game = {
     },
 
     triggerInteraction: (npc) => {
+        // Tắt Joystick khi vào hội thoại
         Game.toggleJoystick(false);
         HubMap.run = false;
-        document.getElementById('interaction-modal').style.display = 'block';
+
+        const modal = document.getElementById('interaction-modal');
+        modal.style.display = 'flex'; // Dùng flex để CSS hoạt động tốt
+
         document.getElementById('dialogue-npc-name').innerText = npc.name;
 
-        // Uses DIALOGUE_LIB from data.js
+        // Lấy dữ liệu hội thoại ngẫu nhiên
         const rIndex = Math.floor(Math.random() * DIALOGUE_LIB.length);
         const chatData = DIALOGUE_LIB[rIndex];
         
         document.getElementById('dialogue-text').innerText = chatData.text;
+        
         const optsContainer = document.getElementById('dialogue-options'); 
-        optsContainer.innerHTML = '';
+        optsContainer.innerHTML = ''; // Xóa nút cũ
 
+        // Tạo danh sách lựa chọn ngẫu nhiên
         let shuffledOptions = chatData.options.map((text, index) => {
             return { text: text, originalIndex: index }; 
         });
         shuffledOptions.sort(() => Math.random() - 0.5);
 
+        // Tạo nút bấm mới (Sử dụng class CSS thay vì style inline)
         shuffledOptions.forEach((opt) => {
             let b = document.createElement('button');
             b.innerText = opt.text;
-            b.style.display = 'block'; 
-            b.style.width = '100%'; 
-            b.style.marginTop = '5px';
+            b.className = 'dialogue-btn'; // Gán class mới để CSS trang trí
 
             b.onclick = () => {
-                // 1. Xử lý logic điểm số (Giữ nguyên logic cũ của bạn)
+                // --- Xử lý điểm số ---
                 if (opt.originalIndex === 0) {
                     RelManager.update(npc, 5);
                     Player.teamwork += 0.5;
-                    let fanBonus = 50 + Player.stats.charisma;
-                    Player.fans += fanBonus;
-                    Notify.show(`👍 ${npc.name.split(' ')[0]} liked that! (+5 Rel, +0.5 Team)`);
+                    Player.fans += 50 + Player.stats.charisma;
+                    Notify.show(`👍 ${npc.name.split(' ')[0]} liked that! (+5 Rel)`);
                 } else if (opt.originalIndex === 2) {
                     RelManager.update(npc, -5);
                     Player.teamwork -= 0.5;
-                    let fanBonus = -50;
-                    Player.fans += fanBonus;
-                    let label = RelManager.getStatusLabel(npc.relationship);
-                    Notify.show(`👎 ${npc.name.split(' ')[0]} disappointed... (-3 Rel, -0.5 Team)`);
+                    Player.fans -= 50;
+                    Notify.show(`👎 ${npc.name.split(' ')[0]} disappointed... (-5 Rel)`);
                 } else {
                     Notify.show("😐 Just a normal conversation.");
                 }
 
-                updateUI(); // Cập nhật giao diện điểm số
+                updateUI();
 
-                Game.toggleJoystick(true);
-                // 2. [QUAN TRỌNG] Đóng bảng hội thoại ngay lập tức
-                // Gọi hàm closeInteraction của HubMap thay vì tự ẩn thủ công để đảm bảo logic chạy lại
+                // --- Đóng bảng hội thoại ---
                 if (typeof HubMap !== 'undefined' && HubMap.closeInteraction) {
                     HubMap.closeInteraction(); 
                 } else {
-                    // Fallback nếu HubMap chưa load kịp (dù hiếm khi xảy ra)
-                    document.getElementById('interaction-modal').style.display = 'none';
+                    modal.style.display = 'none';
                     if (typeof HubMap !== 'undefined') {
                         HubMap.run = true; 
                         HubMap.loop();
                     }
                 }
+                
+                // Bật lại Joystick khi xong
+                Game.toggleJoystick(true);
             };
             optsContainer.appendChild(b);
         });

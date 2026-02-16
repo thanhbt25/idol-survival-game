@@ -1,6 +1,6 @@
-/* --- HUB MAP SYSTEM (FULL MAP: 5 HUGE ROOMS) --- */
 var HubMap = {
     canvas: null, ctx: null, run: false, 
+    loopId: null,
     keys: {}, 
     camera: {x:0, y:0}, 
     curRoom: null, ignore: null,
@@ -66,12 +66,10 @@ var HubMap = {
         };
         window.onkeyup = e => HubMap.keys[e.key] = false;
 
-        // Spawn Player at Center (near Gym)
         if (!Player.x || Player.x < 0 || Player.x > HubMap.width) { 
             Player.x = 1600; Player.y = 1200; 
         }
 
-        // Spawn NPCs
         NPCs.forEach(n => {
             if (!n.eliminated) {
                 n.x = Math.random() * (HubMap.width - 200) + 100;
@@ -79,14 +77,20 @@ var HubMap = {
             }
         });
 
-        requestAnimationFrame(HubMap.loop);
+        // requestAnimationFrame(HubMap.loop);
+
+        if (HubMap.loopId) cancelAnimationFrame(HubMap.loopId)
+        HubMap.loop()
     },
 
     stop: () => HubMap.run = false,
 
     loop: () => {
         if (!HubMap.run) return;
-        if (App.paused) { requestAnimationFrame(HubMap.loop); return; }
+        if (App.paused) { 
+            requestAnimationFrame(HubMap.loop); 
+            return; 
+        }
 
         const ctx = HubMap.ctx;
         const cw = HubMap.canvas.width;
@@ -97,7 +101,7 @@ var HubMap = {
 
         let mv = false;
         let dx = 0, dy = 0;
-        let speed = 5; 
+        let speed = 6; 
 
 
         // Mobile 
