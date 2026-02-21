@@ -9,6 +9,7 @@ var Stage = {
     diffParams: {}, 
     maxRawScore: 0, 
     feedback: { text: "", alpha: 0, y: 0, color: "#fff" },
+    orientationHandler: null,
 
     // --- HỆ THỐNG ÂM THANH CỐ ĐỊNH (SINGLETON) ---
     // Các biến này sẽ giữ nguyên giá trị suốt quá trình chơi, không bao giờ bị xóa
@@ -92,8 +93,35 @@ var Stage = {
     },
 
     // 2. HÀM BẮT ĐẦU MÀN CHƠI
+    updateMobileOrientationHint: () => {
+        const hint = document.getElementById('stage-orientation-hint');
+        if (!hint) return;
+        const isMobile = window.innerWidth <= 1024 || navigator.maxTouchPoints > 0;
+        const isLandscape = window.matchMedia && window.matchMedia('(orientation: landscape)').matches;
+        hint.style.display = (isMobile && isLandscape) ? 'block' : 'none';
+    },
+
+    bindMobileOrientationHint: () => {
+        if (Stage.orientationHandler) return;
+        Stage.orientationHandler = () => Stage.updateMobileOrientationHint();
+        window.addEventListener('resize', Stage.orientationHandler);
+        window.addEventListener('orientationchange', Stage.orientationHandler);
+        Stage.updateMobileOrientationHint();
+    },
+
+    unbindMobileOrientationHint: () => {
+        if (!Stage.orientationHandler) return;
+        window.removeEventListener('resize', Stage.orientationHandler);
+        window.removeEventListener('orientationchange', Stage.orientationHandler);
+        Stage.orientationHandler = null;
+        const hint = document.getElementById('stage-orientation-hint');
+        if (hint) hint.style.display = 'none';
+    },
+
     realInit: () => {
-        if (!App.audioFile) { Notify.show("MISSING MUSIC"); return; }
+        const hasUploadedFile = !!App.audioFile;
+        const hasDraftedSong = !!(App.stageConfig && App.stageConfig.songUrl);
+        if (!hasUploadedFile && !hasDraftedSong) { Notify.show(t("missing_music")); return; }
         
         // Đảm bảo hệ thống âm thanh đã được dựng
         Stage.setupAudioSystem();
@@ -102,6 +130,7 @@ var Stage = {
         // Ẩn UI chọn team, hiện UI game
         document.getElementById('team-select-overlay').style.display = 'none';
         showScreen('stage-screen');
+        Stage.bindMobileOrientationHint();
 
         // Hiển thị team
         let h = ''; Stage.teammates.forEach(t => h += `<div class="teammate-mini-card"><b>${t.name}</b><br>${t.role}</div>`);
@@ -111,8 +140,9 @@ var Stage = {
         let diffKey = App.stageConfig.difficulty || 'medium';
         Stage.diffParams = Stage.DIFFICULTY_SETTINGS[diffKey];
         let retryText = Stage.retryCount > 0 ? ` (RETRY #${Stage.retryCount})` : "";
+        const songLabel = App.audioName || App.stageConfig.songName || "STAGE TRACK";
         document.getElementById('playing-song-name').innerText = 
-            `${App.audioName} [${App.stageConfig.concept.toUpperCase()} - ${diffKey.toUpperCase()}]${retryText}`;
+            `${songLabel} [${App.stageConfig.concept.toUpperCase()} - ${diffKey.toUpperCase()}]${retryText}`;
 
         // QUAN TRỌNG: Đánh thức AudioContext nếu nó đang ngủ
         if (Stage.actx.state === 'suspended') {
@@ -123,21 +153,26 @@ var Stage = {
         // Dừng nhạc cũ nếu đang chạy
         Stage.audioElement.pause();
         
-        // Gán nguồn nhạc mới
-        const objectUrl = URL.createObjectURL(App.audioFile);
-        Stage.audioElement.src = objectUrl;
+        // Gán nguồn nhạc mới: ưu tiên file upload, fallback về bài đã draft
+        let objectUrl = null;
+        if (hasUploadedFile) {
+            objectUrl = URL.createObjectURL(App.audioFile);
+            Stage.audioElement.src = objectUrl;
+        } else {
+            Stage.audioElement.src = App.stageConfig.songUrl;
+        }
         
         // Xóa sự kiện cũ để tránh lặp
         Stage.audioElement.onended = null;
         Stage.audioElement.onended = () => {
-            URL.revokeObjectURL(objectUrl); // Dọn dẹp bộ nhớ
+            if (objectUrl) URL.revokeObjectURL(objectUrl); // Dọn dẹp bộ nhớ
             Stage.endSong(true);
         };
 
         // Bắt đầu phát
         Stage.audioElement.play().catch(e => {
             console.error("Audio Error:", e);
-            Notify.show("CLICK SCREEN TO ENABLE AUDIO");
+            Notify.show(t("click_enable_audio"));
         });
 
         // Reset biến Game
@@ -324,6 +359,23 @@ var Stage = {
         if (Stage.actx && Stage.actx.state === 'running') {
             Stage.actx.suspend();
         }
+        Stage.unbindMobileOrientationHint();
+    },
+
+    simulateNPCStageScore: (npc, targetMaxScore, concept) => {
+        // Lấy chỉ số tương ứng với concept, nếu không có thì lấy trung bình
+        let relStat = npc.stats[concept] || ((npc.stats.vocal + npc.stats.dance + npc.stats.rap) / 3);
+        
+        // NPC xịn (stat 80-100) sẽ có acc từ 85% -> 105%
+        // NPC yếu (stat 20) sẽ có acc từ 55% -> 75%
+        let minAcc = 0.5 + (relStat / 200); 
+        let maxAcc = Math.min(1.05, minAcc + 0.2); 
+        let acc = minAcc + Math.random() * (maxAcc - minAcc);
+        
+        // Tính điểm cơ bản + Bonus kỹ năng (Giống công thức của Player)
+        let baseScore = Math.floor(targetMaxScore * acc);
+        let skillBonus = Math.floor(baseScore * (relStat / 100) * 2.5);
+        return baseScore + skillBonus;
     },
 
     endSong: (winStatus = true) => {
@@ -332,9 +384,9 @@ var Stage = {
             Stage.audioElement.pause();
             Stage.audioElement.currentTime = 0;
         }
+        Stage.unbindMobileOrientationHint();
         window.onkeydown = null; window.onkeyup = null;
 
-        // Xử lý Thất bại
         if (winStatus === false) {
             Stage.lastTotalScore = 0;
             document.getElementById('stage-fail-overlay').style.display = 'flex';
@@ -344,82 +396,83 @@ var Stage = {
         document.getElementById('stage-fail-overlay').style.display = 'none';
         document.getElementById('stage-detail-overlay').style.display = 'flex';
 
-        // --- TÍNH TOÁN ĐIỂM SỐ ---
+        // --- 1. TÍNH ĐIỂM NGƯỜI CHƠI ---
         let total = Stage.totalNotesSpawned || 1;
         if (Stage.maxRawScore === 0) Stage.maxRawScore = 1;
         let accuracy = (Stage.score / Stage.maxRawScore) * 100;
         if (accuracy > 100) accuracy = 100; 
 
-        // Tính sao độ khó
-        let duration = App.stageConfig.duration || 180;
-        let difficultyScore = (total * 0.05) + (Stage.totalHoldSpawned * 0.1) + (total/duration * 5);
-        let starLevel = Math.min(10, Math.max(1, Math.floor(difficultyScore / 5)));
-        let starString = "★".repeat(starLevel) + "<span style='color:#ccc'>"+"★".repeat(10 - starLevel)+"</span>";
-
-        // Tính điểm cơ bản & Bonus
         let currentDiff = App.stageConfig.difficulty || 'medium';
         const MAX_SCORES = { 'easy': 10000, 'medium': 15000, 'hard': 20000 };
         let targetMaxScore = MAX_SCORES[currentDiff];
+        
         let baseScore = Math.floor(targetMaxScore * (accuracy / 100));
-
-        // Skill Bonus
+        let concept = App.stageConfig.concept || 'dance';
         let skillBonus = 0;
-        let concept = App.stageConfig.concept;
         if (concept === 'vocal') skillBonus = Math.floor(baseScore * (Player.stats.vocal / 100) * 3.0);
         else if (concept === 'rap') skillBonus = Math.floor(baseScore * (Player.stats.rap / 100) * 2.5);
         else if (concept === 'dance') skillBonus = Math.floor((baseScore * (Stage.maxCombo/total)) * (Player.stats.dance / 100) * 3.0);
 
-        // Relationship Bonus
-        let relBonus = (typeof RelManager !== 'undefined') ? RelManager.getTeamBonus(Stage.teammates) : 0;
-
-        // Tổng kết
-        let finalScore = baseScore + skillBonus + relBonus;
-        
-        // Penaty nếu Quit hoặc Retry
+        let finalScore = baseScore + skillBonus;
         if (winStatus === 'quit') finalScore = Math.floor(finalScore * 0.5);
         if (Stage.retryCount > 0) finalScore -= Math.floor(finalScore * Math.min(1, Stage.retryCount * 0.2));
         
         Stage.lastTotalScore = finalScore;
 
-        // Xếp hạng (Grade)
+        // --- 2. TÍNH ĐIỂM NPC CÙNG ĐỘI ---
+        let teamHtml = '';
+        let myTeamTotal = finalScore;
+        
+        Stage.teammates.forEach(t => {
+            let tScore = Stage.simulateNPCStageScore(t, targetMaxScore, concept);
+            t.lastStageScore = tScore; // Lưu lại để dùng cho Team Reveal
+            myTeamTotal += tScore;
+            
+            teamHtml += `
+            <div style="display:flex; justify-content:space-between; font-size:10px; border-bottom:1px dashed #ccc; padding:4px 0; color:#2f3542;">
+                <span>${t.name}</span> <span style="font-weight:bold; color:#0984e3;">${formatNum(tScore)}</span>
+            </div>`;
+        });
+        
+        App.myTeamStageScore = myTeamTotal; // Lưu tổng điểm team mình
+
+        // Grade
         let grade = "F"; let gradeColor = "#b2bec3";
         if (accuracy >= 100) { grade = "SSS"; gradeColor = "#ff7675"; }
         else if (accuracy >= 95) { grade = "S"; gradeColor = "#feca57"; }
         else if (accuracy >= 90) { grade = "A"; gradeColor = "#00b894"; }
         else if (accuracy >= 80) { grade = "B"; gradeColor = "#0984e3"; }
         else if (accuracy >= 70) { grade = "C"; gradeColor = "#6c5ce7"; }
-        else if (accuracy >= 60) { grade = "D"; gradeColor = "#636e72"; }
 
-        // --- RENDER GIAO DIỆN (LAYOUT MỚI CHO MOBILE) ---
+        // --- 3. RENDER UI ---
         const contentDiv = document.getElementById('stage-detail-content');
-        
-        // Ẩn nút cũ ngoài overlay nếu có (để tránh bị trùng)
-        const oldBtn = document.querySelector('#stage-detail-overlay > button');
-        if(oldBtn) oldBtn.style.display = 'none';
-
+        const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
         contentDiv.innerHTML = `
-            <div class="stage-res-layout">
-                <div class="sr-left">
-                    <div style="font-size:10px; color:#aaa; font-weight:bold;">${concept.toUpperCase()} / ${currentDiff.toUpperCase()}</div>
-                    <div class="grade-text" style="color:${gradeColor}; text-shadow:2px 2px 0 #fff, 4px 4px 0 rgba(0,0,0,0.1);">${grade}</div>
-                    <div class="acc-text" style="color:#2f3542;">ACC: ${accuracy.toFixed(1)}%</div>
-                    <div class="diff-stars" style="color:#feca57;">${starString}</div>
-                </div>
-
-                <div class="sr-right">
-                    <div class="score-row"><span>BASE SCORE</span> <b>${formatNum(baseScore)}</b></div>
-                    <div class="score-row" style="color:#0984e3;"><span>SKILL BONUS</span> <b>+${formatNum(skillBonus)}</b></div>
-                    <div class="score-row" style="color:#e84393;"><span>TEAMWORK</span> <b>+${formatNum(relBonus)}</b></div>
-                    
-                    ${winStatus === 'quit' ? `<div class="score-row" style="color:red;"><span>QUIT PENALTY</span> <b>-50%</b></div>` : ''}
-                    ${Stage.retryCount > 0 ? `<div class="score-row" style="color:red;"><span>RETRY PENALTY</span> <b>-${Stage.retryCount*20}%</b></div>` : ''}
-                    
-                    <div class="total-score-box">
-                        TOTAL: ${formatNum(finalScore)}
+            <div class="stage-res-layout" style="display:flex; flex-direction:column; background:#fff; padding:20px; border-radius:10px; width:90%; max-width:400px; border:4px solid #2f3542;">
+                <h2 style="text-align:center; color:#2f3542; margin-top:0;">${isVi ? "KẾT QUẢ SÂN KHẤU" : "STAGE RESULTS"}</h2>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; padding:10px; border-radius:8px; margin-bottom:15px;">
+                    <div>
+                        <div style="font-size:10px; color:#aaa;">${isVi ? "BẠN" : "YOU"} (${concept.toUpperCase()})</div>
+                        <div style="font-size:24px; font-weight:bold; color:${gradeColor};">${grade}</div>
+                        <div style="font-size:10px;">ACC: ${accuracy.toFixed(1)}%</div>
                     </div>
-
-                    <button id="btn-stage-continue" onclick="Game.finishStageDay()">CONTINUE</button>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#aaa;">${isVi ? "ĐIỂM CÁ NHÂN" : "PLAYER SCORE"}</div>
+                        <div style="font-size:20px; font-weight:bold; color:#ff6b81;">${formatNum(finalScore)}</div>
+                    </div>
                 </div>
+
+                <div style="font-size:12px; font-weight:bold; color:#2f3542; margin-bottom:5px;">${isVi ? "ĐỒNG ĐỘI" : "TEAMMATES"}</div>
+                <div style="background:#f1f2f6; padding:10px; border-radius:8px; margin-bottom:15px; max-height:100px; overflow-y:auto;">
+                    ${teamHtml || `<div style="font-size:10px; color:#aaa; text-align:center;">${isVi ? "KHÔNG CÓ ĐỒNG ĐỘI (SOLO)" : "NO TEAMMATES (SOLO)"}</div>`}
+                </div>
+
+                <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; color:#2f3542; border-top:2px solid #2f3542; padding-top:10px; margin-bottom:20px;">
+                    <span>${isVi ? "TỔNG ĐIỂM ĐỘI:" : "TEAM TOTAL:"}</span> <span style="color:#00b894;">${formatNum(myTeamTotal)}</span>
+                </div>
+
+                <button onclick="Game.finishStageDay()" style="padding:15px; background:#2f3542; color:#fff; font-family:inherit; font-weight:bold; border-radius:30px; cursor:pointer;">${isVi ? "TIẾP TỤC TỚI XẾP HẠNG" : "CONTINUE TO RANKING"}</button>
             </div>
         `;
     },

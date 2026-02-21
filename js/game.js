@@ -1,3 +1,285 @@
+var SongDraft = {
+    currentSongs: [],
+    audioTemp: null,
+    playingIdx: -1, // Lưu trạng thái nút nào đang phát
+
+    startPhase: () => {
+        if (typeof HubMap !== 'undefined') HubMap.stop();
+        
+        // Lọc bài chưa chơi
+        let availableSongs = SONG_DB.filter(s => !App.usedSongs.includes(s.id));
+        
+        // Nếu lỡ hết bài hát trong kho (chơi quá nhiều vòng), reset lại kho
+        if (availableSongs.length < 5) {
+            App.usedSongs = [];
+            availableSongs = [...SONG_DB];
+        }
+
+        // Random lấy 5 bài
+        SongDraft.currentSongs = availableSongs.sort(() => 0.5 - Math.random()).slice(0, 5);
+        SongDraft.currentSongs.forEach(s => App.usedSongs.push(s.id));
+
+        SongDraft.showPreviewUI();
+    },
+
+    showPreviewUI: () => {
+        const overlay = document.getElementById('song-draft-overlay');
+        const list = document.getElementById('draft-song-list');
+        const title = document.querySelector('.draft-header h1');
+        const desc = document.querySelector('.draft-header p');
+        const nextBtn = document.getElementById('btn-to-minigame');
+
+        if (title) title.innerText = t("song_preview");
+        if (desc) desc.innerHTML = t("song_preview_desc");
+        if (nextBtn) {
+            nextBtn.innerText = t("song_preview_next");
+            nextBtn.style.display = 'block';
+        }
+        list.innerHTML = ''; // Xóa rác cũ
+
+        SongDraft.currentSongs.forEach((song, idx) => {
+            let card = document.createElement('div');
+            card.className = 'song-card';
+            card.innerHTML = `
+                <div>
+                    <div class="song-title">${song.name}</div>
+                    <div class="song-concept">${song.concept.toUpperCase()}</div>
+                </div>
+                <button id="btn-play-${idx}" class="play-preview-btn" onclick="SongDraft.playSnippet(${idx})">▶ ${t("play_30s")}</button>
+            `;
+            list.appendChild(card);
+        });
+
+        overlay.style.display = 'flex';
+
+        // Nút NEXT chuyển sang Minigame
+        document.getElementById('btn-to-minigame').onclick = () => {
+            if (SongDraft.audioTemp) {
+                SongDraft.audioTemp.pause();
+                SongDraft.audioTemp = null;
+            }
+            overlay.style.display = 'none';
+            
+            // Bắt đầu Event Minigame phân định thứ tự
+            SpecialEvent.startDraft(); 
+        };
+    },
+
+    playSnippet: (idx) => {
+        // Nếu bấm lại chính nút đang phát -> Tắt nhạc
+        if (SongDraft.playingIdx === idx && SongDraft.audioTemp && !SongDraft.audioTemp.paused) {
+            SongDraft.audioTemp.pause();
+            document.getElementById(`btn-play-${idx}`).innerText = `▶ ${t("play_30s")}`;
+            document.getElementById(`btn-play-${idx}`).classList.remove('playing');
+            SongDraft.playingIdx = -1;
+            return;
+        }
+
+        // Tắt nhạc cũ nếu đang phát bài khác
+        if (SongDraft.audioTemp) {
+            SongDraft.audioTemp.pause();
+            if (SongDraft.playingIdx !== -1) {
+                let oldBtn = document.getElementById(`btn-play-${SongDraft.playingIdx}`);
+                if (oldBtn) {
+                    oldBtn.innerText = `▶ ${t("play_30s")}`;
+                    oldBtn.classList.remove('playing');
+                }
+            }
+        }
+
+        const song = SongDraft.currentSongs[idx];
+        const btn = document.getElementById(`btn-play-${idx}`);
+
+        if (song.url) {
+            SongDraft.audioTemp = new Audio(song.url);
+            
+            // Tua đến đoạn giữa bài (ví dụ giây 60), tuỳ bạn chỉnh
+            SongDraft.audioTemp.currentTime = 60; 
+            SongDraft.audioTemp.play().catch(e => {
+                console.error("Audio error:", e);
+                Notify.show(t("cannot_load_audio"));
+            });
+
+            btn.innerText = `⏸ ${t("stop")}`;
+            btn.classList.add('playing');
+            SongDraft.playingIdx = idx;
+
+            // Tự tắt sau 30 giây
+            setTimeout(() => {
+                if (SongDraft.audioTemp && SongDraft.playingIdx === idx) {
+                    SongDraft.audioTemp.pause();
+                    btn.innerText = `▶ ${t("play_30s")}`;
+                    btn.classList.remove('playing');
+                    SongDraft.playingIdx = -1;
+                }
+            }, 30000);
+        }
+    },
+
+    processSelection: (teamsList) => {
+        // Hàm này sẽ chạy sau khi Minigame kết thúc (như hướng dẫn ở phần trước)
+        let availableSongs = [...SongDraft.currentSongs];
+        let myTeamPickedSong = null;
+
+        teamsList.forEach(team => {
+            let isPlayerTeam = team.members.some(m => m.id === 'p' || m.isPlayer);
+            
+            if (isPlayerTeam) {
+                myTeamPickedSong = availableSongs[0]; 
+                availableSongs.shift();
+                Notify.show(t("team_picked", { name: myTeamPickedSong.name }));
+            } else {
+                let pickedIndex = Math.floor(Math.random() * availableSongs.length);
+                let pickedSong = availableSongs[pickedIndex];
+                team.song = pickedSong;
+                availableSongs.splice(pickedIndex, 1);
+            }
+        });
+
+        if (myTeamPickedSong) {
+            // TẠO OBJECT FILE ẢO TỪ URL LOCAL ĐỂ ĐẨY VÀO HỆ THỐNG STAGE CŨ
+            fetch(myTeamPickedSong.url)
+                .then(res => res.blob())
+                .then(blob => {
+                    App.audioFile = new File([blob], myTeamPickedSong.name + ".mp3", { type: "audio/mp3" });
+                    App.audioName = myTeamPickedSong.name;
+                    App.stageConfig.concept = myTeamPickedSong.concept;
+                    App.eventDone = true;
+                    Game.triggerStageSetup();
+                })
+                .catch(err => {
+                    console.error("Fetch local audio error:", err);
+                    Notify.show(t("error_loading_stage_audio"));
+                });
+        }
+    },
+
+    startDraft: (teams) => {
+        const overlay = document.getElementById('song-draft-overlay');
+        if (overlay) overlay.style.display = 'flex';
+
+        // Dùng chính danh sách đã preview trước minigame; fallback nếu thiếu dữ liệu
+        if (SongDraft.currentSongs && SongDraft.currentSongs.length) {
+            SongDraft.pool = SongDraft.currentSongs.map(s => ({ ...s, pickedBy: null }));
+        } else {
+            SongDraft.pool = [...SONG_DB].sort(() => 0.5 - Math.random()).slice(0, 5).map(s => ({ ...s, pickedBy: null }));
+        }
+        
+        // Sắp xếp 5 đội theo điểm Minigame (eventScore)
+        SongDraft.pickOrder = [...teams].sort((a, b) => (b.eventScore || 0) - (a.eventScore || 0));
+        SongDraft.currentIndex = 0;
+
+        SongDraft.renderUI();
+        SongDraft.processNextPick();
+    },
+
+    renderUI: () => {
+        const grid = document.getElementById('draft-song-list');
+        grid.innerHTML = '';
+        
+        // Nút NEXT tạm ẩn, chỉ hiện thông báo trạng thái
+        const btn = document.getElementById('btn-to-minigame');
+        btn.style.display = 'none'; 
+        
+        document.querySelector('.draft-header h1').innerText = t("song_selection");
+        document.querySelector('.draft-header p').innerHTML = t("pick_order_info");
+
+        SongDraft.pool.forEach((song, idx) => {
+            let d = document.createElement('div');
+            d.className = `song-card ${song.pickedBy ? 'picked' : ''}`;
+            d.style.opacity = song.pickedBy ? "0.4" : "1";
+            
+            let charName = song.pickedBy ? song.pickedBy.leader.name.split(' ')[0] : 'AVAILABLE';
+            let charColor = song.pickedBy ? '#ff7675' : '#00b894';
+            const pickedLabel = (typeof Lang !== 'undefined' && Lang.current === 'vi') ? 'ĐÃ CHỌN BỞI' : 'PICKED BY';
+
+            d.innerHTML = `
+                <div class="song-title">${song.name}</div>
+                <div class="song-concept">${song.concept}</div>
+                <div class="song-picked-by" style="color:${charColor};">
+                    ${song.pickedBy ? `${pickedLabel}<br>${charName}` : ''}
+                </div>
+            `;
+            
+            // Nếu tới lượt người chơi và bài này chưa ai chọn thì cho phép click
+            if (!song.pickedBy) {
+                d.onclick = () => {
+                    let currentTeam = SongDraft.pickOrder[SongDraft.currentIndex];
+                    if (currentTeam.members.some(m => m.id === 'p')) {
+                        SongDraft.pickSong(idx);
+                    }
+                };
+                if(SongDraft.pickOrder[SongDraft.currentIndex].members.some(m=>m.id==='p')){
+                    d.style.cursor = 'pointer';
+                    d.style.borderColor = '#ffeaa7';
+                }
+            }
+            grid.appendChild(d);
+        });
+    },
+
+    processNextPick: () => {
+        if (SongDraft.currentIndex >= SongDraft.pickOrder.length) {
+            // Đã chọn xong hết
+            setTimeout(() => {
+                const btn = document.getElementById('btn-to-minigame');
+                btn.innerText = t("go_preparation_room");
+                btn.style.display = 'block';
+                btn.onclick = SongDraft.finalizeDraft;
+            }, 1000);
+            return;
+        }
+
+        let currentTeam = SongDraft.pickOrder[SongDraft.currentIndex];
+        let isPlayerTeam = currentTeam.members.some(m => m.id === 'p');
+
+        document.querySelector('.draft-header p').innerHTML = isPlayerTeam
+            ? `<span style="color:#ffeaa7; font-size:14px; font-weight:bold;">${t("your_turn_pick")}</span>`
+            : t("team_is_picking", { name: `<b style="color:#ff7675">${currentTeam.leader.name.split(' ')[0]}</b>` });
+        
+        SongDraft.renderUI();
+
+        if (!isPlayerTeam) {
+            // NPC tự động chọn sau 1.5 giây
+            setTimeout(() => {
+                let available = [];
+                SongDraft.pool.forEach((s, i) => { if (!s.pickedBy) available.push(i); });
+                let randomPick = available[Math.floor(Math.random() * available.length)];
+                SongDraft.pickSong(randomPick);
+            }, 1500);
+        }
+    },
+
+    pickSong: (songIndex) => {
+        let currentTeam = SongDraft.pickOrder[SongDraft.currentIndex];
+        let pickedSong = SongDraft.pool[songIndex];
+        pickedSong.pickedBy = currentTeam;
+        currentTeam.song = pickedSong;
+        
+        // Nếu là team của Player, lưu bài hát vào config để chuẩn bị diễn
+        if (currentTeam.members.some(m => m.id === 'p')) {
+            App.stageConfig = {
+                songName: pickedSong.name,
+                concept: pickedSong.concept,
+                songUrl: pickedSong.url,
+                difficulty: 'medium' // Mặc định
+            };
+            App.audioName = pickedSong.name;
+            App.audioFile = null;
+        }
+
+        SongDraft.currentIndex++;
+        SongDraft.processNextPick();
+    },
+
+    finalizeDraft: () => {
+        App.eventDone = true;
+        const overlay = document.getElementById('song-draft-overlay');
+        if (overlay) overlay.style.display = 'none';
+        Game.triggerStageSetup();
+    }
+};
+
 function resizeGame() {
     const container = document.getElementById('game-container');
     if (!container) return;
@@ -118,6 +400,7 @@ function initGame() {
     resizeGame();
     Joystick.init();
     generateDecor();
+    if (typeof Lang !== 'undefined') Lang.init();
 }
 
 function generateDecor() {
@@ -348,6 +631,7 @@ var Game = {
         Player.totalVote = 0;
         Player.teamwork = 20;
         Player.stats = {dance:20,vocal:20,rap:20,visual:20,charisma:20,stamina:50};
+        App.usedSongs = [];
     },
 
     toggleMusicSource: (type) => {
@@ -393,7 +677,7 @@ var Game = {
     previewSong: (src, name) => {
         // Hiển thị tên bài hát
         const display = document.getElementById('song-name-display');
-        display.innerText = "SELECTED: " + name;
+        display.innerText = t("selected_song", { name: name });
         
         // Lưu nguồn nhạc vào biến global của Stage
         Stage.audioSource = src; 
@@ -435,17 +719,22 @@ toggleSettings: () => {
     updateSettingsUI: () => {
         const btn = document.getElementById('btn-setting-bgm');
         if (BGM.enabled) {
-            btn.innerText = "🔊 BGM ON";
+            btn.innerText = `🔊 ${t("bgm_on")}`;
             btn.style.background = "#fff"; btn.style.color = "#2f3542";
         } else {
-            btn.innerText = "🔇 BGM OFF";
+            btn.innerText = `🔇 ${t("bgm_off")}`;
             btn.style.background = "#aaa"; btn.style.color = "#fff";
         }
-        document.getElementById('bgm-toggle').innerText = BGM.enabled ? "🔊 BGM OFF" : "🔇 BGM ON";
+        document.getElementById('bgm-toggle').innerText = BGM.enabled ? `🔊 ${t("bgm_off")}` : `🔇 ${t("bgm_on")}`;
+    },
+
+    toggleLanguage: () => {
+        if (typeof Lang === 'undefined') return;
+        Lang.toggle();
     },
 
     quitToTitle: () => {
-        if(confirm("Quit to Title Screen? Unsaved progress will be lost.")) {
+        if(confirm(t("quit_confirm"))) {
             App.paused = false;
             document.getElementById('settings-overlay').style.display = 'none';
             HubMap.stop();
@@ -487,7 +776,7 @@ toggleSettings: () => {
     enterHub: () => { 
         showScreen('hub-screen'); 
         BGM.play('hub'); 
-        Notify.show("WELCOME TO IDOL DORM!<br>DAY " + App.day);
+        Notify.show(t("welcome_day", { day: App.day }));
         
         document.getElementById('interaction-modal').style.display = 'none';
 
@@ -504,12 +793,21 @@ toggleSettings: () => {
     },
     
     checkStageDay: () => {
+        console.log(App.day)
         if(C.ELIM_DAYS.includes(App.day)) {
             const n = document.getElementById('room-notification');
             
-            if ((App.day === 7 || App.day === 14 || App.day === 21) && !App.eventDone) {
+            // Thay thế điều kiện hardcode bằng kiểm tra App.eventDone
+            if (!App.eventDone) {
                 HubMap.stop();
-                SpecialEvent.startDraft(); 
+                
+                // Nếu bạn ĐÃ ghép tính năng chọn nhạc (SongDraft), gọi nó ở đây. 
+                // Nếu CHƯA, thì gọi SpecialEvent.startDraft()
+                if (typeof SongDraft !== 'undefined') {
+                    SongDraft.startPhase();
+                } else {
+                    SpecialEvent.startDraft(); 
+                }
                 return;
             }
             
@@ -519,7 +817,7 @@ toggleSettings: () => {
 
     nextDay: () => {
         if (App.isGameOver) { Game.showGameOver(); return; }
-        if (App.day >= 30) { Game.showWin(); return; }
+        if (App.day >= 35) { Game.showWin(); return; }
         
         App.day++; 
         App.eventDone = false; 
@@ -533,28 +831,25 @@ toggleSettings: () => {
         document.getElementById('hub-screen').classList.add('active');
         App.screen = 'hub-screen';
         
-        // Khởi động lại Map nhưng KHÔNG gọi Game.checkStageDay()
         HubMap.start();
-        // -------------------------------------------
         
         const n = document.getElementById('room-notification');
         n.style.display='block';
         
-        let title = "TEAM BATTLE";
-        if (App.day === 30) title = "FINAL DEBUT STAGE";
+        let title = t("room_team_battle");
+        if (App.day === 35) title = t("room_final_debut"); // Sửa 30 thành 35
         
         document.getElementById('room-title').innerText = title;
-        document.getElementById('room-desc').innerText = "PREPARE PERFORMANCE";
+        document.getElementById('room-desc').innerText = t("prepare_performance");
         document.getElementById('stage-setup-area').style.display='block';
         
-        // Ẩn các nút không cần thiết
         document.getElementById('room-action-btn').style.display = 'none'; 
         document.getElementById('room-cancel-btn').style.display='none';
         document.getElementById('stage-start-btn').style.display='none';
 
-        // GÁN TEAMMATES TỪ DRAFT
-        if (App.day === 7 || App.day === 14 || App.day === 21) {
-            let myTeam = SpecialEvent.teams.find(t => t.members.some(m => m.id === 'p' || (m.isPlayer)));
+        // Sử dụng C.ELIM_DAYS thay vì 7,14,21
+        if (C.ELIM_DAYS.includes(App.day)) {
+            let myTeam = SpecialEvent.teams.find(t => t.members.some(m => m.id === 'p' || m.isPlayer));
             
             if (myTeam) {
                 Stage.teammates = myTeam.members.filter(m => !m.isPlayer && m.id !== 'p');
@@ -562,27 +857,32 @@ toggleSettings: () => {
                 Stage.teammates = NPCs.filter(n=>!n.eliminated).sort(()=>0.5-Math.random()).slice(0,4);
             }
         } else {
-            if (App.day === 30) Stage.teammates = [];
+            if (App.day === 35) Stage.teammates = []; // Sửa 30 thành 35
             else Stage.teammates = NPCs.filter(n=>!n.eliminated).sort(()=>0.5-Math.random()).slice(0,4);
         }
+
+        if (App.stageConfig && App.stageConfig.songName) {
+            document.getElementById('drafted-song-name').innerText = App.stageConfig.songName;
+            document.getElementById('drafted-song-concept').innerText = App.stageConfig.concept + " " + t("stage_suffix");
+        }
+
+        Game.selectDiff('medium');
+        document.getElementById('stage-start-btn').style.display = 'block';
     },
 
     triggerTeamSelection: () => {
         Stage.retryCount = 0;
         document.getElementById('room-notification').style.display='none';
         
-        // NẾU LÀ NGÀY SỰ KIỆN: BỎ QUA BƯỚC CHỌN LẠI TEAM, VÀO THẲNG STAGE
-        if (App.day === 7 || App.day === 14 || App.day === 21) {
-            // Team đã được gán ở triggerStageSetup rồi
+        // Sử dụng C.ELIM_DAYS
+        if (C.ELIM_DAYS.includes(App.day)) {
             Stage.realInit();
             return; 
         }
 
-        // NẾU LÀ NGÀY THƯỜNG: Random như cũ
         document.getElementById('team-select-overlay').style.display='flex';
         const c = document.getElementById('team-slots-container'); c.innerHTML='';
         
-        // Logic random cũ cho ngày thường
         Stage.teammates = NPCs.filter(n=>!n.eliminated).sort(()=>0.5-Math.random()).slice(0,4);
         
         Stage.teammates.forEach((n,i) => {
@@ -613,7 +913,7 @@ toggleSettings: () => {
             tempAudio.onloadedmetadata = function() {
                 App.stageConfig.duration = tempAudio.duration || 180; 
                 let durText = Math.floor(App.stageConfig.duration) + "s";
-                document.getElementById('song-name-display').innerHTML = `SELECTED: ${App.audioName}<br>(Length: ${durText})`;
+                document.getElementById('song-name-display').innerHTML = t("selected_song_len", { name: App.audioName, dur: durText });
                 document.getElementById('concept-selector').style.display = 'block';
                 document.getElementById('stage-start-btn').style.display = 'block';
                 Game.selectConcept('dance');
@@ -629,126 +929,190 @@ toggleSettings: () => {
     },
     
     startPractice: (type) => {
-        if(Player.stats.stamina<10) { Notify.show("NO STAMINA! GO TO DORM."); return; }
+        if(Player.stats.stamina<10) { Notify.show(t("no_stamina")); return; }
         Player.stats.stamina-=10; updateUI(); Minigame.start(type);
     },
 
-    rest: () => { Player.stats.stamina=50; Notify.show("RESTED!"); Game.simDay(); },
-
-// 1. KẾT THÚC MÀN NHẢY
+    rest: () => { Player.stats.stamina=50; Notify.show(t("rested")); Game.simDay(); },
+    
     finishStageDay: () => {
         document.getElementById('stage-detail-overlay').style.display = 'none';
-
-        // Check thiết bị
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 1024;
-
-        if (isMobile) {
-            // --- LOGIC CHO MOBILE ---
-            // Vì Mobile bỏ qua màn hình "Day Summary" nên ta phải TÍNH ĐIỂM VÀ CỘNG NGẦM ở đây
-            // (Copy logic tính toán từ showDaySummary sang để không bị mất điểm)
-            let sGame = App.compScore || 0;
-            let sBonus = App.lastEventBonus || 0;
-            let sStage = Math.floor(Stage.lastTotalScore || 0);
-            let sTotal = sGame + sBonus + sStage;
-
-            Player.totalVote += sTotal; // Cộng vote
-            
-            // Cộng fan
-            let fanMultiplier = 1 + (Player.stats.visual / 100);
-            let stageFans = Math.floor((sStage / 100) * fanMultiplier);
-            Player.fans += stageFans;
-
-            // Reset biến tạm
-            App.compScore = 0;
-            App.lastEventBonus = 0; 
-
-            // VÀO THẲNG TỔNG KẾT NGÀY (RANKING/LOẠI)
-            Game.finalizeDay();
-        } 
-        else {
-            // --- LOGIC CHO PC ---
-            // Nếu là ngày sự kiện (7, 14, 21): Vào màn hình công bố điểm đội trước
-            if (App.day === 7 || App.day === 14 || App.day === 21) {
-                Game.showTeamReveal();
-            } 
-            // Ngày thường: Vào tổng kết cá nhân
-            else {
-                Game.showDaySummary();
-            }
+        if (C.ELIM_DAYS.includes(App.day)) {
+            Game.showTeamReveal();
+        } else {
+            Game.showDaySummary();
         }
     },
 
-    // 2. HIỂN THỊ ĐIỂM ĐỘI (CHỈ PC - NGÀY SỰ KIỆN)
     showTeamReveal: () => {
         showScreen('team-reveal-screen');
+        
+        // Xóa sạch các thuộc tính display ép cứng trước đó (nếu có)
+        const screenEl = document.getElementById('team-reveal-screen');
+        if (screenEl) screenEl.style.display = '';
+
         const list = document.getElementById('team-reveal-list');
+        if (!list) return;
         list.innerHTML = '';
         
         const btnNext = document.getElementById('btn-reveal-next');
-        btnNext.style.display = 'none';
-
-        // --- GÁN SỰ KIỆN NÚT NEXT ---
-        // Trên PC, sau khi xem điểm team -> Sang trang tổng kết cá nhân
-        btnNext.onclick = () => {
-            Game.showDaySummary();
-        };
-
-        // Lấy danh sách team
-        let teams = SpecialEvent.teams;
-        let myTeam = teams.find(t => t.members.some(m => m.id === 'p'));
-        if (myTeam) {
-            myTeam.eventScore += Math.floor(Stage.lastTotalScore); 
+        if (btnNext) {
+            btnNext.style.display = 'none';
+            btnNext.onclick = () => { Game.finalizeDay(); }; 
         }
 
-        // Tạo dữ liệu giả cho đội khác
-        teams.forEach(t => {
-            if (!t.members.some(m => m.id === 'p')) {
-                let fakeStageScore = 15000 + Math.floor(Math.random() * 10000);
-                t.finalDailyScore = t.eventScore + fakeStageScore; 
+        // FAILSAFE: Nếu bỏ qua bốc thăm và chơi thẳng, tự sinh mảng Team ảo để không Crash
+        if (!SpecialEvent.teams || SpecialEvent.teams.length === 0) {
+            SpecialEvent.teams = Array.from({length: 5}, (_, i) => ({
+                leader: i === 0 ? Player : (NPCs[i] || {name: 'Bot', skin:'#ccc', hair:'#000', stats:{dance:50,vocal:50,rap:50}}),
+                members: i === 0 ? [{...Player, id:'p', isPlayer:true}] : [(NPCs[i] || {name:'Bot', stats:{dance:50,vocal:50,rap:50}})],
+                eventScore: Math.floor(Math.random() * 5000)
+            }));
+        }
+
+        let currentDiff = (App.stageConfig && App.stageConfig.difficulty) ? App.stageConfig.difficulty : 'medium';
+        const MAX_SCORES = { 'easy': 10000, 'medium': 15000, 'hard': 20000 };
+        let targetMaxScore = MAX_SCORES[currentDiff] || 15000;
+        let concept = (App.stageConfig && App.stageConfig.concept) ? App.stageConfig.concept : 'dance';
+
+        SpecialEvent.teams.forEach(t => {
+            let isMyTeam = t.members && t.members.some(m => m.id === 'p' || m.isPlayer);
+            if (isMyTeam) {
+                t.stageScore = App.myTeamStageScore || 0; 
             } else {
-                t.finalDailyScore = t.eventScore; 
+                let tTotal = 0;
+                if (t.members) t.members.forEach(m => { tTotal += Stage.simulateNPCStageScore(m, targetMaxScore, concept); });
+                t.stageScore = tTotal;
             }
+            t.finalDailyScore = (t.eventScore || 0) + (t.stageScore || 0);
         });
 
-        teams.sort((a,b) => b.finalDailyScore - a.finalDailyScore);
+        SpecialEvent.teams.sort((a,b) => b.finalDailyScore - a.finalDailyScore);
 
-        // Render
-        teams.forEach((t, i) => {
-            let isMyTeam = t.members.some(m => m.id === 'p');
+        const rankBonuses = [50000, 30000, 10000, 5000, 0];
+        SpecialEvent.teams.forEach((t, i) => {
+            t.rankBonus = rankBonuses[i] || 0;
+            if (t.members) t.members.forEach(m => {
+                if (m.id === 'p') App.lastEventBonus = t.rankBonus;
+                else m.dailyBonus = t.rankBonus; 
+            });
+        });
+
+        SpecialEvent.teams.forEach((t, i) => {
+            let isMyTeam = t.members && t.members.some(m => m.id === 'p');
             let div = document.createElement('div');
-            div.className = `team-score-bar ${isMyTeam ? 'my-team' : ''}`;
+            
+            div.style.cssText = `background:#fff; border:3px solid ${isMyTeam?'#ff6b81':'#2f3542'}; border-radius:8px; padding:10px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; z-index:1; margin-bottom: 12px; width: 100%; box-sizing: border-box;`;
+            let leaderName = (t.leader && t.leader.name) ? t.leader.name.split(' ')[0] : 'Bot';
+
+            const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
             div.innerHTML = `
-                <div class="ts-rank">#${i+1}</div>
-                <div class="ts-name">TEAM ${t.leader.name.split(' ')[0]}</div>
-                <div class="ts-val" id="ts-val-${i}">0</div>
-                <div class="ts-fill" id="ts-fill-${i}"></div>
+                <div id="ts-fill-${i}" style="position:absolute; top:0; left:0; height:100%; width:0%; background:${isMyTeam?'#ffeaa7':'#dfe6e9'}; z-index:-1; transition:width 1.5s ease-out;"></div>
+                <div style="display:flex; align-items:center; gap:10px; position:relative; z-index:2;">
+                    <div style="font-size:20px; font-weight:bold; color:${i===0?'#f1c40f':'#2f3542'};">#${i+1}</div>
+                    <div style="font-size:12px; font-weight:bold; color:#2f3542; text-align:left;">${isVi ? "ĐỘI" : "TEAM"} ${leaderName}<br><span style="font-size:8px; color:#ff7675;">${isVi ? "THƯỞNG" : "BONUS"}: +${formatNum(t.rankBonus)}</span></div>
+                </div>
+                <div id="ts-val-${i}" style="font-size:18px; font-weight:bold; color:#2f3542; position:relative; z-index:2;">0</div>
             `;
             list.appendChild(div);
 
             setTimeout(() => {
-                div.classList.add('revealed');
-                let percent = Math.min(100, (t.finalDailyScore / 40000) * 100);
-                document.getElementById(`ts-fill-${i}`).style.width = `${percent}%`;
-                Game.animateValue(`ts-val-${i}`, 0, t.finalDailyScore, 2000);
-            }, i * 200);
+                let maxPossible = targetMaxScore * 5 + 20000; 
+                let percent = Math.min(100, (t.finalDailyScore / maxPossible) * 100);
+                let fillEl = document.getElementById(`ts-fill-${i}`);
+                if (fillEl) fillEl.style.width = `${percent}%`;
+                
+                let valEl = document.getElementById(`ts-val-${i}`);
+                if (valEl) {
+                    if (typeof Game.animateValue === 'function') Game.animateValue(`ts-val-${i}`, 0, t.finalDailyScore, 1500);
+                    else valEl.innerText = formatNum(t.finalDailyScore);
+                }
+            }, i * 300 + 100);
         });
 
-        setTimeout(() => {
-            btnNext.style.display = 'block';
-        }, teams.length * 200 + 2000);
+        setTimeout(() => { if (btnNext) btnNext.style.display = 'block'; }, SpecialEvent.teams.length * 300 + 1500);
+    },
+
+    renderRank: () => {
+        let all = [...NPCs, {...Player, id:'p', isPlayer:true}].sort((a,b)=>b.totalVote-a.totalVote);
+        const l = document.getElementById('ranking-list'); l.innerHTML='';
+        
+        let elim = 0;
+        if(C.ELIM_DAYS.includes(App.day)) {
+            elim = 5; 
+            if(elim>0) {
+                document.getElementById('elimination-msg').style.display='block';
+                document.getElementById('elimination-msg').innerText = t("elim_bottom_leave", { num: elim });
+            }
+        } else {
+            document.getElementById('elimination-msg').style.display='none';
+        }
+
+        let active = all.filter(t=>!t.eliminated);
+        let cutoff = active.length - elim;
+
+        all.forEach((t, i) => {
+            let currentRank = i + 1;
+            let d = document.createElement('div'); d.className='rank-card';
+            if(t.isPlayer) d.classList.add('player');
+            if(t.eliminated) d.classList.add('eliminated');
+            
+            if(elim > 0 && !t.eliminated && active.indexOf(t) >= cutoff) {
+                d.style.borderColor='red'; d.innerHTML += `<div style="color:red; font-size:8px; font-weight:bold; position:absolute; top:4px; right:4px; background:#fff; padding:2px 4px; border-radius:3px; line-height:1;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "LOẠI" : "ELIM"}</div>`;
+                if(t.isPlayer) App.isGameOver=true; else NPCs.find(n=>n.id===t.id).eliminated=true;
+            }
+            
+            let rankChangeHtml = "";
+            let voteGained = t.totalVote - (t.prevVote || 0);
+
+            if (t.prevRank) {
+                let rankDiff = t.prevRank - currentRank;
+                if (rankDiff > 0) rankChangeHtml = `<span style="color:#00b894; font-size:8px;">▲${rankDiff}</span>`;
+                else if (rankDiff < 0) rankChangeHtml = `<span style="color:#d63031; font-size:8px;">▼${Math.abs(rankDiff)}</span>`;
+                else rankChangeHtml = `<span style="color:#b2bec3; font-size:8px;">-</span>`;
+            }
+
+            // FAILSAFE: Lấy tên an toàn, tránh báo lỗi split undefined
+            let safeName = (t.name && typeof t.name === 'string') ? t.name.split(' ')[0] : 'Unknown';
+
+            d.innerHTML += `
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <div class="rank-num">#${currentRank} ${rankChangeHtml}</div>
+                </div>
+                <div class="rank-avatar" style="background:${t.skin || '#ccc'};">
+                    <div class="rank-avatar-hair" style="background:${t.hair || '#000'};"></div>
+                </div>
+                <b class="rank-name" style="font-size:10px;">${safeName}</b><br>
+                <div style="font-size:10px; color:#2f3542;">
+                    ${formatNum(t.totalVote)}<br>
+                    <span style="font-size:7px; color:#e17055;">(+${formatNum(voteGained)})</span>
+                </div>
+            `;
+            l.appendChild(d);
+        });
     },
 
     // 3. TỔNG KẾT CÁ NHÂN (CHỈ PC - HOẶC MOBILE NẾU MUỐN SHOW)
     showDaySummary: () => {
         showScreen('day-summary-screen');
         
-        // 1. Tính toán
         let sGame = App.compScore || 0;    
         let sBonus = App.lastEventBonus || 0; 
         let sStage = Math.floor(Stage.lastTotalScore || 0);
-        let sTotal = sGame + sBonus + sStage;
+        
+        // LOGIC MỚI:
+        let sTotal = 0;
+        if (C.ELIM_DAYS.includes(App.day)) {
+            // Ngày event: Chỉ tính điểm Live Stage
+            sTotal = sStage;
+            document.getElementById('sum-game').innerText = "(Picking Order Only)";
+        } else {
+            // Ngày thường: Tính tất cả
+            sTotal = sGame + sBonus + sStage;
+            document.getElementById('sum-game').innerText = "+" + formatNum(sGame);
+        }
 
-        // 2. Cộng điểm
+        // Cộng điểm
         Player.totalVote += sTotal;
 
         // 3. Cộng Fan
@@ -777,14 +1141,13 @@ toggleSettings: () => {
         
         // Hoặc tạo một thông báo nhỏ nhắc người chơi bấm để tiếp tục
         setTimeout(() => {
-           Notify.show("Click anywhere to continue...");
+           Notify.show(t("click_continue"));
         }, 2000);
     },
 
     // 4. HÀM MỚI: KẾT THÚC NGÀY (Nối vào logic cũ)
     finalizeDay: () => {
-        // --- KIỂM TRA NGÀY 30 ---
-        if (App.day === 30) {
+        if (App.day === 35) {
             showScreen('heart-game-screen');
             document.getElementById('heart-start-overlay').style.display = 'flex';
         } else {
@@ -795,98 +1158,61 @@ toggleSettings: () => {
     simDay: () => {
         document.getElementById('interaction-modal').style.display = 'none';
 
-        if(C.ELIM_DAYS.includes(App.day)) {
-            showScreen('result-screen'); 
-            Game.renderRank();
-            return;
-        }
+        // --- 1. LƯU SNAPSHOT (Lịch sử xếp hạng & điểm trước khi cộng) ---
+        let allChars = [...NPCs, {...Player, id:'p', isPlayer:true}];
+        allChars.sort((a,b) => b.totalVote - a.totalVote);
+        
+        // Gắn rank cũ và vote cũ vào từng object
+        allChars.forEach((c, index) => {
+            let target = (c.isPlayer) ? Player : NPCs.find(n => n.id === c.id);
+            if (target) {
+                target.prevRank = index + 1;
+                target.prevVote = target.totalVote || 0;
+            }
+        });
 
-        let totalStats = Player.stats.vocal + Player.stats.dance + Player.stats.rap + Player.stats.visual + Player.stats.charisma;
-        let statScore = Math.floor(totalStats * (3.0 + Math.random())); 
-        let fanScore = Math.floor(Player.fans / 2); 
-
+        // --- 2. CỘNG ĐIỂM NGÀY HÔM NAY ---
+        // Player: Cộng điểm Stage + Bonus sự kiện + Điểm thụ động
+        let playerDailyGain = (Stage.lastTotalScore || 0) + (App.lastEventBonus || 0) + Math.floor(Player.fans / 2);
+        Player.totalVote += playerDailyGain;
+        
         let relScore = 0;
         NPCs.forEach(n => relScore += (n.relationship || 0));
-        if (relScore < 0) relScore = 0; 
-        relScore = relScore * 10;
+        Player.totalVote += Math.max(0, relScore * 10);
 
-        let playerViral = 0;
-        if (Math.random() < 0.05) { 
-            playerViral = 5000 + Math.floor(Math.random() * 5000);
-            Notify.show("⭐ YOU WENT VIRAL TODAY! ⭐\n(HUGE VOTE BOOST)");
-        }
-
-        let dailyGain = statScore + fanScore + relScore + playerViral;
-        Player.totalVote += dailyGain;
-
+        // NPC: Cộng điểm
         let sortedNPCs = [...NPCs].sort((a, b) => b.totalVote - a.totalVote);
-
         NPCs.forEach(n => { 
             if(!n.eliminated) {
                 let npcStats = n.stats.vocal + n.stats.dance + n.stats.rap + n.stats.visual + n.stats.charisma;
-                let skillGain = Math.floor(npcStats * (2.0 + Math.random() * 2.0));
-                let momentumGain = Math.floor(n.totalVote * (0.08 + Math.random() * 0.04));
+                let dailyNPCGain = Math.floor(npcStats * (2.0 + Math.random() * 2.0));
+                
+                // Nếu là ngày sự kiện, NPC được cộng bonus Team (đã lưu ở bước 3)
+                if (n.dailyBonus) {
+                    dailyNPCGain += n.dailyBonus;
+                    n.dailyBonus = 0; // Xóa sau khi cộng
+                }
 
                 let rankIndex = sortedNPCs.indexOf(n);
-                let rankBonus = 0;
-                if (rankIndex === 0) rankBonus = 5000 + Math.floor(Math.random() * 3000);
-                else if (rankIndex < 3) rankBonus = 3000 + Math.floor(Math.random() * 2000);
-                else if (rankIndex < 7) rankBonus = 1500 + Math.floor(Math.random() * 1000);
-                else rankBonus = 200 + Math.floor(Math.random() * 300);
+                if (rankIndex === 0) dailyNPCGain += 3000;
+                else if (rankIndex < 7) dailyNPCGain += 1000;
 
-                let viralBonus = 0;
-                if (Math.random() < 0.03) viralBonus = 10000 + Math.floor(Math.random() * 10000);
-
-                let totalNPCGain = skillGain + momentumGain + rankBonus + viralBonus;
-
-                if (rankIndex < 10 && n.totalVote < Player.totalVote) {
-                    totalNPCGain = Math.floor(totalNPCGain * 1.5);
-                }
-                n.totalVote += totalNPCGain;
+                n.totalVote += dailyNPCGain;
             }
         });
 
+        // Xóa rác biến tạm
+        Stage.lastTotalScore = 0; App.lastEventBonus = 0; App.compScore = 0;
+
+        // --- 3. HIỂN THỊ KẾT QUẢ ---
         showScreen('result-screen'); 
         Game.renderRank();
-    },
-
-    renderRank: () => {
-        let all = [...NPCs, {...Player, id:'p', isPlayer:true}].sort((a,b)=>b.totalVote-a.totalVote);
-        const l = document.getElementById('ranking-list'); l.innerHTML='';
-        let elim = 0;
-        if(C.ELIM_DAYS.includes(App.day)) {
-            elim = App.day===7?6:(App.day===14?4:(App.day===21?4:0));
-            if(elim>0) {
-                document.getElementById('elimination-msg').style.display='block';
-                document.getElementById('elimination-msg').innerText = `ELIMINATION: BOTTOM ${elim} LEAVE!`;
-            }
-        } else document.getElementById('elimination-msg').style.display='none';
-
-        let active = all.filter(t=>!t.eliminated);
-        let cutoff = active.length - elim;
-
-        all.forEach((t, i) => {
-            let d = document.createElement('div'); d.className='rank-card';
-            if(t.isPlayer) d.classList.add('player');
-            if(t.eliminated) d.classList.add('eliminated');
-            
-            if(elim > 0 && !t.eliminated && active.indexOf(t) >= cutoff) {
-                d.style.borderColor='red'; d.innerHTML += '<div style="color:red; font-size:8px; font-weight:bold">ELIM</div>';
-                if(t.isPlayer) App.isGameOver=true; else NPCs.find(n=>n.id===t.id).eliminated=true;
-            }
-            if(App.day===30 && !t.eliminated && active.indexOf(t)<5) {
-                 d.style.borderColor='gold'; d.innerHTML += '<div style="color:gold; font-size:8px">DEBUT</div>';
-            }
-
-            d.innerHTML += `<div class="rank-num">#${i+1}</div><b>${t.name}</b><br>${formatNum(t.totalVote)}`;
-            l.appendChild(d);
-        });
     },
 
     showGameOver: () => {
         let all = [...NPCs, {...Player, id:'p'}].sort((a,b)=>b.totalVote-a.totalVote);
         let rank = all.findIndex(t => t.id === 'p') + 1;
-        document.getElementById('go-days').innerText = App.day + " Days";
+        document.getElementById('go-days').innerText = App.day + " " + ((typeof Lang !== 'undefined' && Lang.current === "vi") ? "Ngày" : "Days");
         document.getElementById('go-rank').innerText = "#" + rank;
         document.getElementById('go-votes').innerText = Player.totalVote.toLocaleString();
         showScreen('game-over-screen');
@@ -932,22 +1258,6 @@ toggleSettings: () => {
             if(debutGroup[i]) document.getElementById('py-row-3').innerHTML += createCardHTML(debutGroup[i], i+1);
         }
     },
-    
-    nextDay: () => {
-        if (App.isGameOver) { 
-            Game.showGameOver();
-            return; 
-        }
-        
-        if (App.day >= 30) { 
-            Game.showWin(); 
-            return; 
-        }
-        
-        App.day++; 
-        Player.stats.stamina = 50; 
-        Game.enterHub();
-    },
 
     triggerInteraction: (npc) => {
         // Tắt Joystick khi vào hội thoại
@@ -960,13 +1270,14 @@ toggleSettings: () => {
         document.getElementById('dialogue-npc-name').innerText = npc.name;
 
         // Lấy dữ liệu hội thoại ngẫu nhiên
-        const rIndex = Math.floor(Math.random() * DIALOGUE_LIB.length);
-        const chatData = DIALOGUE_LIB[rIndex];
+        const currentDialogues = Lang.getDialogueList();
+        const rIndex = Math.floor(Math.random() * currentDialogues.length);
+        const chatData = currentDialogues[rIndex];
         
         document.getElementById('dialogue-text').innerText = chatData.text;
         
         const optsContainer = document.getElementById('dialogue-options'); 
-        optsContainer.innerHTML = ''; // Xóa nút cũ
+        optsContainer.innerHTML = ''; 
 
         // Tạo danh sách lựa chọn ngẫu nhiên
         let shuffledOptions = chatData.options.map((text, index) => {
@@ -986,14 +1297,14 @@ toggleSettings: () => {
                     RelManager.update(npc, 5);
                     Player.teamwork += 0.5;
                     Player.fans += 50 + Player.stats.charisma;
-                    Notify.show(`👍 ${npc.name.split(' ')[0]} liked that! (+5 Rel)`);
+                    Notify.show(`👍 ${npc.name.split(' ')[0]} ${t("dialog_like")}`);
                 } else if (opt.originalIndex === 2) {
                     RelManager.update(npc, -5);
                     Player.teamwork -= 0.5;
                     Player.fans -= 50;
-                    Notify.show(`👎 ${npc.name.split(' ')[0]} disappointed... (-5 Rel)`);
+                    Notify.show(`👎 ${npc.name.split(' ')[0]} ${t("dialog_dislike")}`);
                 } else {
-                    Notify.show("😐 Just a normal conversation.");
+                    Notify.show(`😐 ${t("dialog_normal")}`);
                 }
 
                 updateUI();
@@ -1026,13 +1337,14 @@ toggleSettings: () => {
             let score = n.relationship || 0;
             let statusText = (typeof RelManager !== 'undefined') ? RelManager.getStatusLabel(score) : "UNKNOWN";
             let scoreColor = score >= 0 ? '#ff4757' : '#57606f'; 
+            let safeRelName = (n.name && typeof n.name === 'string') ? n.name.split(' ')[0] : 'Unknown';
 
             grid.innerHTML += `
             <div class="rel-card">
                 <div style="width:20px; height:20px; background:${n.skin}; margin:0 auto 5px;">
                     <div style="width:100%; height:6px; background:${n.hair}"></div>
                 </div>
-                <div style="font-weight:bold; font-size:9px; margin-bottom:5px;">${n.name}</div>
+                <div class="rel-name" style="font-weight:bold; font-size:9px; margin-bottom:5px;">${safeRelName}</div>
                 <div class="rel-score" style="color:${scoreColor}">${score > 0 ? '+' : ''}${score}</div>
                 <div class="rel-status">${statusText}</div>
             </div>`;

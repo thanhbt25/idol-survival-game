@@ -1,0 +1,24 @@
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"dodge","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702085836}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"dodge","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702086391}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"209px","layoutOverflow":"auto","tableOverflow":"auto"},"hypothesisId":"H1","timestamp":1771702095535}
+{"sessionId":"6f233f","location":"event.js:startGame","message":"redgreen started","data":{"isPC":true,"hasTouch":false},"hypothesisId":"H3","timestamp":1771702098038}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"redgreen","handlesRedgreen":true},"hypothesisId":"H2","timestamp":1771702098259}
+{"sessionId":"6f233f","location":"event.js:loopRedGreen","message":"vecY sample post-fix","data":{"vecY":0,"mouseHeld":true,"runId":"post-fix"},"hypothesisId":"H4","timestamp":1771702098500}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"209px","layoutOverflow":"auto","tableOverflow":"auto"},"hypothesisId":"H1","timestamp":1771702099698}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702101406}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702102097}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702102707}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702103306}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702103806}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702104297}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702104841}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702105270}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"209px","layoutOverflow":"auto","tableOverflow":"auto"},"hypothesisId":"H1","timestamp":1771702121409}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"catch","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702170464}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"233.5px","layoutOverflow":"auto","tableOverflow":"hidden"},"hypothesisId":"H1","timestamp":1771702190460}
+{"sessionId":"6f233f","location":"event.js:startGame","message":"redgreen started","data":{"isPC":false,"hasTouch":true},"hypothesisId":"H3","timestamp":1771702240592}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"redgreen","handlesRedgreen":true},"hypothesisId":"H2","timestamp":1771702240741}
+{"sessionId":"6f233f","location":"event.js:loopRedGreen","message":"vecY sample post-fix","data":{"vecY":-0.9839218248692717,"mouseHeld":true,"runId":"post-fix"},"hypothesisId":"H4","timestamp":1771702241053}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"233.5px","layoutOverflow":"auto","tableOverflow":"hidden"},"hypothesisId":"H1","timestamp":1771702242206}
+{"sessionId":"6f233f","location":"event.js:triggerAction","message":"triggerAction","data":{"type":"shoe","handlesRedgreen":false},"hypothesisId":"H2","timestamp":1771702245501}
+{"sessionId":"6f233f","location":"event.js:roundResult","message":"round overlay","data":{"vw":740,"vh":360,"layoutHeight":"233.5px","layoutOverflow":"auto","tableOverflow":"hidden"},"hypothesisId":"H1","timestamp":1771702246604}

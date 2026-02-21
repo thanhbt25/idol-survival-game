@@ -1,4 +1,4 @@
-var HubMap = {
+﻿var HubMap = {
     canvas: null, ctx: null, run: false, 
     loopId: null,
     keys: {}, 
@@ -32,10 +32,10 @@ var HubMap = {
         const js = document.getElementById('mobile-controls');
         const isMobile = window.innerWidth < 1024 || navigator.maxTouchPoints > 0;
         
-        // Chỉ hiện nếu là mobile VÀ biến show = true
+        // Chá»‰ hiá»‡n náº¿u lÃ  mobile VÃ€ biáº¿n show = true
         if (js && isMobile && show) {
             js.style.display = 'block';
-            if (typeof Joystick !== 'undefined') Joystick.init(); // Đảm bảo event được gán
+            if (typeof Joystick !== 'undefined') Joystick.init(); // Äáº£m báº£o event Ä‘Æ°á»£c gÃ¡n
         } else if (js) {
             js.style.display = 'none';
         }
@@ -319,24 +319,24 @@ var HubMap = {
 
         ctx.textAlign = "center"; ctx.font = isPlayer ? "14px 'Press Start 2P'" : "13px 'Press Start 2P'";
         if (isPlayer) {
-            // --- VẼ MŨI TÊN (TO HƠN + VIỀN ĐEN) ---
+            // --- Váº¼ MÅ¨I TÃŠN (TO HÆ N + VIá»€N ÄEN) ---
             ctx.fillStyle = "#ff4757"; 
-            ctx.strokeStyle = "#000"; // Màu viền đen
-            ctx.lineWidth = 2;        // Độ dày viền
+            ctx.strokeStyle = "#000"; // MÃ u viá»n Ä‘en
+            ctx.lineWidth = 2;        // Äá»™ dÃ y viá»n
 
             ctx.beginPath();
-            // Đỉnh dưới (mũi nhọn hướng vào đầu nhân vật)
+            // Äá»‰nh dÆ°á»›i (mÅ©i nhá»n hÆ°á»›ng vÃ o Ä‘áº§u nhÃ¢n váº­t)
             ctx.moveTo(x, y - (20 * s) + bounce); 
-            // Góc trái trên (mở rộng ra -8 thay vì -5)
+            // GÃ³c trÃ¡i trÃªn (má»Ÿ rá»™ng ra -8 thay vÃ¬ -5)
             ctx.lineTo(x - 8, y - (25 * s) + bounce); 
-            // Góc phải trên (mở rộng ra +8 thay vì +5)
+            // GÃ³c pháº£i trÃªn (má»Ÿ rá»™ng ra +8 thay vÃ¬ +5)
             ctx.lineTo(x + 8, y - (25 * s) + bounce); 
             
-            ctx.closePath(); // Khép kín hình tam giác
-            ctx.fill();      // Tô màu đỏ
-            ctx.stroke();    // Vẽ viền đen
+            ctx.closePath(); // KhÃ©p kÃ­n hÃ¬nh tam giÃ¡c
+            ctx.fill();      // TÃ´ mÃ u Ä‘á»
+            ctx.stroke();    // Váº½ viá»n Ä‘en
 
-            // --- VẼ TÊN (GIỮ NGUYÊN) ---
+            // --- Váº¼ TÃŠN (GIá»® NGUYÃŠN) ---
             ctx.fillStyle = "#fff"; 
             ctx.strokeStyle = "#000"; 
             ctx.lineWidth = 3; 
@@ -351,17 +351,28 @@ var HubMap = {
     triggerRoom: (room) => {
         if (typeof C !== 'undefined' && C.ELIM_DAYS.includes(App.day)) return;
         const n = document.getElementById('room-notification');
+        const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
+        const roomNameMap = isVi
+            ? { dorm: 'KÝ TÚC XÁ', vocal: 'THANH NHẠC', dance: 'VŨ ĐẠO', rap: 'RAP', gym: 'THỂ LỰC' }
+            : { dorm: 'DORM', vocal: 'VOCAL', dance: 'DANCE', rap: 'RAP', gym: 'GYM' };
+        const roomLabel = roomNameMap[room.id] || room.name;
+
         n.style.display = 'block';
-        document.getElementById('room-title').innerText = room.name;
-        document.getElementById('room-desc').innerText = "ACTION?";
+        document.getElementById('room-title').innerText = roomLabel;
+        document.getElementById('room-desc').innerText = isVi ? 'HÀNH ĐỘNG?' : 'ACTION?';
         document.getElementById('stage-setup-area').style.display = 'none';
         
         const b = document.getElementById('room-action-btn');
         b.style.display = 'inline-block';
         document.getElementById('room-cancel-btn').style.display = 'inline-block';
         
-        if (room.id === 'dorm') { b.innerText = "SLEEP (Restore STA)"; b.onclick = () => { n.style.display = 'none'; Game.rest(); }; } 
-        else { b.innerText = "PRACTICE " + room.name; b.onclick = () => { n.style.display = 'none'; Game.startPractice(room.id); }; }
+        if (room.id === 'dorm') {
+            b.innerText = isVi ? 'NGỦ (Hồi STA)' : 'SLEEP (Restore STA)';
+            b.onclick = () => { n.style.display = 'none'; Game.rest(); };
+        } else {
+            b.innerText = (isVi ? 'LUYỆN ' : 'PRACTICE ') + roomLabel;
+            b.onclick = () => { n.style.display = 'none'; Game.startPractice(room.id); };
+        }
     },
     
     cancelRoom: () => {
@@ -371,7 +382,7 @@ var HubMap = {
     
     closeInteraction: () => { 
         const modal = document.getElementById('interaction-modal');
-        if (modal) modal.style.display = 'none'; // Dòng này cực kỳ quan trọng
+        if (modal) modal.style.display = 'none'; // DÃ²ng nÃ y cá»±c ká»³ quan trá»ng
         
         HubMap.run = true; 
         HubMap.loop(); 

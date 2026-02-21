@@ -3,9 +3,17 @@ var C = {
     KEYS:['d','f','j','k'], 
     MAP_W:2000, MAP_H:1500, 
     SPEED:5, TILE:40, 
-    ELIM_DAYS:[7,14,21,30] 
+    ELIM_DAYS:[7,14,21,28,35] 
 };
 
+const SONG_DB = [
+    { id: 1, name: "Attention", concept: "dance", url: "livestage/Attention.mp3" },
+    { id: 2, name: "Love Dive", concept: "vocal", url: "livestage/LOVE DIVE -Japanese version-.mp3" },
+    { id: 3, name: "Mic Drop", concept: "rap", url: "livestage/MIC Drop.mp3" },
+    { id: 4, name: "Hype Boy", concept: "dance", url: "livestage/Hype Boy.mp3" },
+    { id: 5, name: "Ditto", concept: "vocal", url: "livestage/Ditto.mp3" },
+    { id: 6, name: "Tomboy", concept: "rap", url: "livestage/Tomboy.mp3" },
+];
 // Global Variables
 var NPCs = [];
 var DECOR = [];
@@ -22,7 +30,8 @@ var App = {
     lastEventBonus: 0,
     currentRound: 1,      // Vòng hiện tại (1, 2, 3)
     maxRounds: 3,         // Tổng số vòng
-    accumulatedScore: 0
+    accumulatedScore: 0,
+    usedSongs: []
 };
 
 var Player = {
@@ -41,6 +50,15 @@ function formatNum(n) {
 }
 
 function r(m){return Math.floor(Math.random()*m);}
+
+if (typeof window.t !== 'function') {
+    window.t = function (key, params) {
+        if (typeof Lang !== 'undefined' && Lang && typeof Lang.t === 'function') {
+            return Lang.t(key, params);
+        }
+        return key;
+    };
+}
 
 var Notify = {
     timer: null,
@@ -62,8 +80,10 @@ var Notify = {
         t.style.color = '#2f3542';               
         t.style.border = '4px solid #2f3542';    
         t.style.padding = '10px 20px';           
-        t.style.fontFamily = "'Press Start 2P', cursive";
-        t.style.fontSize = '10px';
+        
+        t.style.fontFamily = "'VT323', monospace";
+        t.style.fontSize = '20px'; 
+        
         t.style.textAlign = 'center';
         t.style.borderRadius = '8px';
         t.style.boxShadow = '4px 4px 0px rgba(0,0,0,0.2)';

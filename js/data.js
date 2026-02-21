@@ -51,10 +51,10 @@ if (typeof RelManager === 'undefined') {
             npc.relationship += score;
         },
         getStatusLabel: (score) => {
-            if(score > 50) return "BESTIE";
-            if(score > 20) return "FRIEND";
-            if(score < -20) return "RIVAL";
-            return "ACQUAINTANCE";
+            if(score > 50) return t("rel_bestie");
+            if(score > 20) return t("rel_friend");
+            if(score < -20) return t("rel_rival");
+            return t("rel_acquaintance");
         },
         getTeamBonus: (team) => {
             return 0;

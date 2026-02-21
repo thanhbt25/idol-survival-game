@@ -1,4 +1,4 @@
-button { pointer-events: auto; }
+﻿button { pointer-events: auto; }
 :root {
     --primary: #ff6b81; --secondary: #1e90ff; --accent: #feca57;
     --bg-sky: #48dbfb; --grass: #55efc4; 
@@ -83,18 +83,18 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
     flex-direction: column; 
     align-items: center;
     width: 95%; 
-    max-width: 800px; /* Tăng chiều rộng để dàn hàng ngang */
+    max-width: 800px; /* TÄƒng chiá»u rá»™ng Ä‘á»ƒ dÃ n hÃ ng ngang */
     max-height: 95vh; 
     overflow-y: auto;
 }
 
-/* Dàn hàng ngang cho PC và Mobile Landscape */
+/* DÃ n hÃ ng ngang cho PC vÃ  Mobile Landscape */
 .creation-cols { 
     display: flex; 
     gap: 15px; 
     width: 100%; 
     justify-content: center; 
-    flex-wrap: nowrap; /* Ưu tiên nằm ngang */
+    flex-wrap: nowrap; /* Æ¯u tiÃªn náº±m ngang */
 }
 .creation-left { flex: 1.2; }
 .creation-right { 
@@ -160,82 +160,82 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 #room-notification { top: 40%; width: 300px; }
 
 #interaction-modal {
-    /* Vị trí cố định */
+    /* Vá»‹ trÃ­ cá»‘ Ä‘á»‹nh */
     position: fixed;
-    bottom: 5%; /* Nhích lên cao một chút cho dễ nhìn */
+    bottom: 5%; /* NhÃ­ch lÃªn cao má»™t chÃºt cho dá»… nhÃ¬n */
     left: 50%;
     transform: translateX(-50%);
     
-    /* Kích thước TO và CAO hơn */
+    /* KÃ­ch thÆ°á»›c TO vÃ  CAO hÆ¡n */
     width: 92%;
     max-width: 650px;
-    min-height: 120px; /* Ép chiều cao tối thiểu lớn hẳn */
+    min-height: 120px; /* Ã‰p chiá»u cao tá»‘i thiá»ƒu lá»›n háº³n */
     
-    /* Giao diện */
+    /* Giao diá»‡n */
     background: #fff;
-    border: 6px solid #2f3542; /* Viền dày chuẩn Pixel */
-    border-radius: 4px; /* Bo góc ít thôi cho nó vuông vức */
-    padding: 30px; /* Đệm thoáng bên trong */
-    box-shadow: 0 10px 0 rgba(0,0,0,0.5); /* Bóng đổ khối mạnh mẽ */
+    border: 6px solid #2f3542; /* Viá»n dÃ y chuáº©n Pixel */
+    border-radius: 4px; /* Bo gÃ³c Ã­t thÃ´i cho nÃ³ vuÃ´ng vá»©c */
+    padding: 30px; /* Äá»‡m thoÃ¡ng bÃªn trong */
+    box-shadow: 0 10px 0 rgba(0,0,0,0.5); /* BÃ³ng Ä‘á»• khá»‘i máº¡nh máº½ */
     
-    /* Bố cục */
+    /* Bá»‘ cá»¥c */
     display: none;
     flex-direction: column;
     z-index: 20000;
 }
 
-/* Tên NPC */
+/* TÃªn NPC */
 #dialogue-npc-name {
     color: #ff4757;
-    /* SỬ DỤNG FONT PIXEL */
+    /* Sá»¬ Dá»¤NG FONT PIXEL */
     font-family: 'Press Start 2P', cursive;
-    font-size: 20px !important; /* Cỡ chữ vừa phải với font này */
+    font-size: 20px !important; /* Cá»¡ chá»¯ vá»«a pháº£i vá»›i font nÃ y */
     line-height: 1.5;
     margin-bottom: 25px;
     text-shadow: 2px 2px 0 #2f3542;
     text-transform: uppercase;
 }
 
-/* Nội dung hội thoại */
+/* Ná»™i dung há»™i thoáº¡i */
 #dialogue-text {
     color: #2f3542;
-    /* SỬ DỤNG FONT PIXEL */
-    font-family: 'Press Start 2P', cursive;
-    font-size: 14px !important; /* Font pixel này khá to nên 14px là dễ đọc */
-    line-height: 1.8 !important; /* Giãn dòng rộng ra */
-    margin-bottom: 40px !important; /* Đẩy các nút bấm ra xa */
-    flex-grow: 1; /* Chiếm khoảng trống */
+    /* Sá»¬ Dá»¤NG FONT PIXEL */
+    font-family: 'VT323';
+    font-size: 30px !important; /* Font pixel nÃ y khÃ¡ to nÃªn 14px lÃ  dá»… Ä‘á»c */
+    line-height: 2.05 !important; /* GiÃ£n dÃ²ng rá»™ng ra */
+    margin-bottom: 40px !important; /* Äáº©y cÃ¡c nÃºt báº¥m ra xa */
+    flex-grow: 1; /* Chiáº¿m khoáº£ng trá»‘ng */
 }
 
-/* Container chứa nút */
+/* Container chá»©a nÃºt */
 #dialogue-options {
     display: flex;
     flex-direction: column;
-    gap: 15px; /* Khoảng cách giữa các nút */
+    gap: 15px; /* Khoáº£ng cÃ¡ch giá»¯a cÃ¡c nÃºt */
 }
 
-/* Nút lựa chọn */
+/* NÃºt lá»±a chá»n */
 .dialogue-btn {
     background: #f1f2f6;
     border: 4px solid #2f3542;
     border-radius: 4px;
-    padding: 15px 10px; /* Nút cao, dễ bấm */
+    padding: 15px 10px; /* NÃºt cao, dá»… báº¥m */
     
-    /* Font chữ nút */
+    /* Font chá»¯ nÃºt */
     font-family: 'Press Start 2P', cursive;
-    font-size: 12px; /* Cỡ chữ nút nhỏ hơn một chút */
+    font-size: 12px; /* Cá»¡ chá»¯ nÃºt nhá» hÆ¡n má»™t chÃºt */
     color: #2f3542;
     text-align: center;
-    text-transform: uppercase; /* Nút nên viết hoa hết */
+    text-transform: uppercase; /* NÃºt nÃªn viáº¿t hoa háº¿t */
     
-    box-shadow: 0 6px 0 #bdc3c7; /* Bóng nút */
+    box-shadow: 0 6px 0 #bdc3c7; /* BÃ³ng nÃºt */
     transition: all 0.1s;
     cursor: pointer;
 }
 
-/* Hiệu ứng bấm nút */
+/* Hiá»‡u á»©ng báº¥m nÃºt */
 .dialogue-btn:active {
-    transform: translateY(6px); /* Nút lún xuống thật */
+    transform: translateY(6px); /* NÃºt lÃºn xuá»‘ng tháº­t */
     box-shadow: none;
     background: #ffeaa7;
     border-color: #e67e22;
@@ -243,7 +243,7 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
 
 #team-reveal-list {
     flex-grow: 1;
-    overflow-y: auto; /* Cho phép cuộn nếu bảng dài */
+    overflow-y: auto; /* Cho phÃ©p cuá»™n náº¿u báº£ng dÃ i */
     min-height: 200px;
 }
 
@@ -343,8 +343,8 @@ canvas {
     line-height: 1 !important;           
     
     text-align: center !important;
-    width: 100% !important;         /* Ép khung rộng ra hết cỡ thì mới căn giữa được */
-    display: block !important;      /* Đảm bảo nó là dạng khối để nhận width 100% */
+    width: 100% !important;         /* Ã‰p khung rá»™ng ra háº¿t cá»¡ thÃ¬ má»›i cÄƒn giá»¯a Ä‘Æ°á»£c */
+    display: block !important;      /* Äáº£m báº£o nÃ³ lÃ  dáº¡ng khá»‘i Ä‘á»ƒ nháº­n width 100% */
 }
 
 .rank-card {
@@ -491,14 +491,14 @@ canvas {
 
 #draft-visual {
     position: relative;
-    width: 95%;           /* Chiếm 95% chiều rộng cha */
-    height: 70% !important;        /* CỐ ĐỊNH CHIỀU CAO (Quan trọng) */
+    width: 95%;           /* Chiáº¿m 95% chiá»u rá»™ng cha */
+    height: 70% !important;        /* Cá» Äá»ŠNH CHIá»€U CAO (Quan trá»ng) */
     background: #fff9c4;  
     border: 4px solid #2f3542;
     border-radius: 12px;
     margin: 10px auto;
     box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
-    display: block;       /* Đảm bảo nó là block */
+    display: block;       /* Äáº£m báº£o nÃ³ lÃ  block */
 }
 
 #draftCanvas {
@@ -507,7 +507,7 @@ canvas {
     display: block;
 }
 
-/* Style cho thanh điểm Team */
+/* Style cho thanh Ä‘iá»ƒm Team */
 .team-score-bar {
     display: flex;
     align-items: center;
@@ -517,7 +517,7 @@ canvas {
     overflow: hidden;
     border: 2px solid #555;
     position: relative;
-    opacity: 0; /* Ẩn lúc đầu để animation */
+    opacity: 0; /* áº¨n lÃºc Ä‘áº§u Ä‘á»ƒ animation */
     transition: opacity 0.5s;
 }
 
@@ -552,18 +552,18 @@ canvas {
     z-index: 2;
 }
 
-/* Thanh progress chạy nền */
+/* Thanh progress cháº¡y ná»n */
 .ts-fill {
     position: absolute;
     top: 0; left: 0;
     height: 100%;
     background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
     width: 0%;
-    transition: width 2s cubic-bezier(0.22, 1, 0.36, 1); /* Hiệu ứng chạy chậm dần */
+    transition: width 2s cubic-bezier(0.22, 1, 0.36, 1); /* Hiá»‡u á»©ng cháº¡y cháº­m dáº§n */
     z-index: 1;
 }
 
-/* Highlight đội người chơi */
+/* Highlight Ä‘á»™i ngÆ°á»i chÆ¡i */
 .team-score-bar.my-team {
     border-color: #feca57;
     box-shadow: 0 0 10px rgba(254, 202, 87, 0.3);
@@ -577,7 +577,7 @@ canvas {
 }
 
 #rotate-device-overlay {
-    display: none; /* Mặc định ẩn */
+    display: none; /* Máº·c Ä‘á»‹nh áº©n */
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #2f3542; z-index: 9999;
     flex-direction: column; align-items: center; justify-content: center;
@@ -587,21 +587,21 @@ canvas {
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* 1. Mặc định là để JS tự quyết định (không ép !important) */
+/* 1. Máº·c Ä‘á»‹nh lÃ  Ä‘á»ƒ JS tá»± quyáº¿t Ä‘á»‹nh (khÃ´ng Ã©p !important) */
 #interaction-modal {
-    display: none; /* Mặc định ẩn */
+    display: none; /* Máº·c Ä‘á»‹nh áº©n */
 }
 
-/* 2. Chỉ khi JS bật nó lên (thêm style="display: block"), ta mới ép nó thành flex */
+/* 2. Chá»‰ khi JS báº­t nÃ³ lÃªn (thÃªm style="display: block"), ta má»›i Ã©p nÃ³ thÃ nh flex */
 #interaction-modal[style*="display: block"] {
     display: flex !important;
     flex-direction: column !important;
 }
 
-/* Chỉ hiện khi màn hình dọc trên mobile */
+/* Chá»‰ hiá»‡n khi mÃ n hÃ¬nh dá»c trÃªn mobile */
 @media screen and (max-height: 500px) and (orientation: landscape) {
     #mobile-controls {
-        display: none !important;  /* Mặc định ẩn */
+        display: none !important;  /* Máº·c Ä‘á»‹nh áº©n */
     }
 
     #joystick-base {
@@ -622,10 +622,10 @@ canvas {
         position: absolute;
         top: 50%; left: 50%;
         transform: translate(-50%, -50%);
-        margin-top: -25px; margin-left: -25px; /* Căn giữa thủ công */
-        pointer-events: none; /* Để cảm ứng xuyên qua núm vào đế */
+        margin-top: -25px; margin-left: -25px; /* CÄƒn giá»¯a thá»§ cÃ´ng */
+        pointer-events: none; /* Äá»ƒ cáº£m á»©ng xuyÃªn qua nÃºm vÃ o Ä‘áº¿ */
     }
-    /* 1. Thu nhỏ các nút bấm chính (Relations, Settings) */
+    /* 1. Thu nhá» cÃ¡c nÃºt báº¥m chÃ­nh (Relations, Settings) */
     button {
         padding: 4px 8px !important;
         font-size: 8px !important;
@@ -642,18 +642,18 @@ canvas {
 
     button[onclick="Game.toggleSettings()"] {
         width: 100px !important;
-        top: 40px !important; /* Kéo lên sát nút trên */
+        top: 40px !important; /* KÃ©o lÃªn sÃ¡t nÃºt trÃªn */
         left: 10px !important;
     }
 
-    /* 2. Thu nhỏ bảng chỉ số (Stats) bên phải */
+    /* 2. Thu nhá» báº£ng chá»‰ sá»‘ (Stats) bÃªn pháº£i */
     #hub-stats-display {
         top: 5px !important;
         right: 5px !important;
         padding: 5px 8px !important;
-        font-size: 8px !important; /* Chữ siêu nhỏ */
+        font-size: 8px !important; /* Chá»¯ siÃªu nhá» */
         line-height: 1.4 !important;
-        width: 110px !important; /* Cố định chiều rộng nhỏ */
+        width: 110px !important; /* Cá»‘ Ä‘á»‹nh chiá»u rá»™ng nhá» */
         min-width: auto !important;
         border-width: 2px !important;
     }
@@ -663,11 +663,11 @@ canvas {
     }
 
     #create-box {
-        width: 70% !important; /* Đừng để quá rộng */
-        max-height: 95vh !important; /* Gần full chiều cao */
+        width: 70% !important; /* Äá»«ng Ä‘á»ƒ quÃ¡ rá»™ng */
+        max-height: 95vh !important; /* Gáº§n full chiá»u cao */
         padding: 10px !important;
         display: flex;
-        flex-direction: row; /* Dàn ngang thay vì dọc để tiết kiệm chiều cao */
+        flex-direction: row; /* DÃ n ngang thay vÃ¬ dá»c Ä‘á»ƒ tiáº¿t kiá»‡m chiá»u cao */
         flex-wrap: wrap;
         justify-content: center;
         align-items: flex-start;
@@ -684,7 +684,7 @@ canvas {
         gap: 10px !important;
     }
 
-    /* Thu nhỏ các dòng chỉ số cộng điểm */
+    /* Thu nhá» cÃ¡c dÃ²ng chá»‰ sá»‘ cá»™ng Ä‘iá»ƒm */
     .stat-row {
         height: 24px !important;
         font-size: 8px !important;
@@ -698,7 +698,7 @@ canvas {
         padding: 0 !important;
     }
 
-    /* Thu nhỏ ảnh nhân vật preview */
+    /* Thu nhá» áº£nh nhÃ¢n váº­t preview */
     #char-preview {
         width: 60px !important;
         height: 60px !important;
@@ -716,53 +716,53 @@ canvas {
     }
 
     #npc-intro-screen h2 {
-        font-size: 14px !important; /* Tăng nhẹ tiêu đề 30 TRAINEES */
+        font-size: 14px !important; /* TÄƒng nháº¹ tiÃªu Ä‘á» 30 TRAINEES */
         margin: 5px 0 !important;
     }
 
-    /* 2. Lưới hiển thị (Grid): Tăng kích thước cột để thẻ to hơn */
+    /* 2. LÆ°á»›i hiá»ƒn thá»‹ (Grid): TÄƒng kÃ­ch thÆ°á»›c cá»™t Ä‘á»ƒ tháº» to hÆ¡n */
     #npc-list-grid {
         display: grid !important;
-        /* Ép đúng 5 cột mỗi dòng */
+        /* Ã‰p Ä‘Ãºng 5 cá»™t má»—i dÃ²ng */
         grid-template-columns: repeat(5, 1fr) !important; 
         gap: 5px !important;
         padding: 5px !important;
         overflow-y: auto !important; 
     }
 
-    /* 2. Lưới hiển thị Ranking (image_c8f27d.png) */
-    /* Giả sử id container của bảng xếp hạng là #ranking-grid hoặc tương đương */
+    /* 2. LÆ°á»›i hiá»ƒn thá»‹ Ranking (image_c8f27d.png) */
+    /* Giáº£ sá»­ id container cá»§a báº£ng xáº¿p háº¡ng lÃ  #ranking-grid hoáº·c tÆ°Æ¡ng Ä‘Æ°Æ¡ng */
     #ranking-list {
         display: grid !important;
-        grid-template-columns: repeat(5, 1fr) !important; /* Hiện tại đang là 4, đổi thành 5 */
+        grid-template-columns: repeat(5, 1fr) !important; /* Hiá»‡n táº¡i Ä‘ang lÃ  4, Ä‘á»•i thÃ nh 5 */
         gap: 5px !important;
         padding: 10px !important;
     }
 
-    /* 3. Thẻ Nhân Vật (Rank Card): Phóng to layout */
+    /* 3. Tháº» NhÃ¢n Váº­t (Rank Card): PhÃ³ng to layout */
     .rank-card {
         height: auto !important;
-        min-height: 140px !important; /* Tăng từ 90px để chứa đủ text chỉ số */
+        min-height: 140px !important; /* TÄƒng tá»« 90px Ä‘á»ƒ chá»©a Ä‘á»§ text chá»‰ sá»‘ */
         width: auto !important;
         padding: 6px !important;
-        border-width: 2px !important; /* Viền dày hơn cho rõ pixel art */
+        border-width: 2px !important; /* Viá»n dÃ y hÆ¡n cho rÃµ pixel art */
         display: flex !important;
         flex-direction: column !important;
         justify-content: space-between !important;
     }
 
-    /* Phóng to Avatar NPC */
+    /* PhÃ³ng to Avatar NPC */
     .rank-card > div:first-child { 
-        width: 30px !important;  /* Tăng từ 15px */
+        width: 30px !important;  /* TÄƒng tá»« 15px */
         height: 30px !important; 
         margin: 5px auto !important;
     }
-    /* Chỉnh lại tóc của nhân vật trong thẻ */
+    /* Chá»‰nh láº¡i tÃ³c cá»§a nhÃ¢n váº­t trong tháº» */
     .rank-card > div:first-child > div { height: 6px !important; }
 
-    /* Phóng to Tên & Role */
+    /* PhÃ³ng to TÃªn & Role */
     .rank-card div:nth-child(2) { 
-        font-size: 10px !important; /* Tên NPC */
+        font-size: 10px !important; /* TÃªn NPC */
         margin: 3px 0 !important;
         font-weight: bold !important;
     } 
@@ -771,9 +771,9 @@ canvas {
         margin-bottom: 5px !important;
     }
 
-    /* 4. Bảng chỉ số (Voc, Dan, Rap, Wis, Cha): Quan trọng nhất */
+    /* 4. Báº£ng chá»‰ sá»‘ (Voc, Dan, Rap, Wis, Cha): Quan trá»ng nháº¥t */
     .rank-card div:last-child {
-        font-size: 8px !important; /* Tăng từ 5px lên 8px cho dễ đọc */
+        font-size: 8px !important; /* TÄƒng tá»« 5px lÃªn 8px cho dá»… Ä‘á»c */
         padding: 4px !important;
         background: rgba(0,0,0,0.05) !important;
         border-radius: 4px !important;
@@ -782,7 +782,7 @@ canvas {
         line-height: 1.2 !important;
     }
 
-    /* 5. Nút "ENTER DORM" */
+    /* 5. NÃºt "ENTER DORM" */
     #npc-intro-screen button {
         padding: 8px 25px !important;
         font-size: 12px !important;
@@ -795,37 +795,37 @@ canvas {
     }
     
     #minigame-canvas-container {
-        width: 90vw !important; /* Chiếm 90% chiều ngang màn hình */
-        height: 90vh !important; /* Chiếm 90% chiều cao màn hình */
-        max-width: 600px !important; /* Giới hạn lại chút để không bị dài ngoằng trên máy to */
-        margin: 2vh auto !important; /* Căn giữa */
+        width: 90vw !important; /* Chiáº¿m 90% chiá»u ngang mÃ n hÃ¬nh */
+        height: 90vh !important; /* Chiáº¿m 90% chiá»u cao mÃ n hÃ¬nh */
+        max-width: 600px !important; /* Giá»›i háº¡n láº¡i chÃºt Ä‘á»ƒ khÃ´ng bá»‹ dÃ i ngoáº±ng trÃªn mÃ¡y to */
+        margin: 2vh auto !important; /* CÄƒn giá»¯a */
         border-width: 3px !important;
     }
 
-    /* 2. Chỉnh lại giao diện Hướng dẫn (Tutorial) bên trong */
+    /* 2. Chá»‰nh láº¡i giao diá»‡n HÆ°á»›ng dáº«n (Tutorial) bÃªn trong */
     #mg-tutorial {
         padding: 10px !important;
         justify-content: center !important;
     }
 
-    /* Icon (Cánh tay, Micro...) - Cho to lên */
+    /* Icon (CÃ¡nh tay, Micro...) - Cho to lÃªn */
     #mg-tutorial > div:first-child { 
         font-size: 35px !important; 
         margin-bottom: 5px !important;
     }
 
-    /* Tiêu đề (GYM TRAINING) */
+    /* TiÃªu Ä‘á» (GYM TRAINING) */
     #mg-tutorial h2 {
         display: block !important;
-        font-size: 14px !important; /* Tăng cỡ chữ tiêu đề */
+        font-size: 14px !important; /* TÄƒng cá»¡ chá»¯ tiÃªu Ä‘á» */
         margin-bottom: 10px !important;
         color: #feca57 !important;
     }
 
-    /* Hộp nội dung văn bản hướng dẫn */
+    /* Há»™p ná»™i dung vÄƒn báº£n hÆ°á»›ng dáº«n */
     #mg-tutorial > div:nth-child(3) {
-        font-size: 11px !important; /* Tăng từ 8px lên 11px cho dễ đọc */
-        line-height: 1.6 !important; /* Giãn dòng ra cho thoáng */
+        font-size: 11px !important; /* TÄƒng tá»« 8px lÃªn 11px cho dá»… Ä‘á»c */
+        line-height: 1.6 !important; /* GiÃ£n dÃ²ng ra cho thoÃ¡ng */
         padding: 10px !important;
         margin-bottom: 10px !important;
         width: 95% !important;
@@ -835,12 +835,12 @@ canvas {
         text-align: left !important;
     }
     
-    /* Khoảng cách các dòng chữ */
+    /* Khoáº£ng cÃ¡ch cÃ¡c dÃ²ng chá»¯ */
     #mg-tutorial p {
         margin: 5px 0 !important;
     }
 
-    /* Nút "I'M READY" - Làm to, dễ bấm */
+    /* NÃºt "I'M READY" - LÃ m to, dá»… báº¥m */
     #btn-tut-start {
         font-size: 12px !important;
         padding: 10px 30px !important;
@@ -851,21 +851,21 @@ canvas {
         cursor: pointer !important;
     }
 
-    /* Thông tin phụ bên dưới (TRAINING: EASY) */
+    /* ThÃ´ng tin phá»¥ bÃªn dÆ°á»›i (TRAINING: EASY) */
     #minigame-info {
         font-size: 10px !important;
         margin-top: 5px !important;
         color: #aaa !important;
     }
     
-    /* Nút EXIT */
+    /* NÃºt EXIT */
     #minigame-screen > button {
         padding: 5px 15px !important;
         font-size: 10px !important;
         margin-top: 5px !important;
     }
 
-    /* 1. Khung bao ngoài (Màu vàng nhạt) */
+    /* 1. Khung bao ngoÃ i (MÃ u vÃ ng nháº¡t) */
     #rel-screen .result-box {
         width: 95% !important;
         height: 90% !important;
@@ -874,29 +874,29 @@ canvas {
         flex-direction: column;
     }
 
-    /* Tiêu đề "RELATIONSHIP CHART" */
+    /* TiÃªu Ä‘á» "RELATIONSHIP CHART" */
     #rel-screen h2 {
         font-size: 10px !important;
         margin: 2px 0 5px 0 !important;
     }
 
-    /* 2. Lưới hiển thị (Grid) */
-    /* 1. Lưới hiển thị: Tăng kích thước cột và hàng */
+    /* 2. LÆ°á»›i hiá»ƒn thá»‹ (Grid) */
+    /* 1. LÆ°á»›i hiá»ƒn thá»‹: TÄƒng kÃ­ch thÆ°á»›c cá»™t vÃ  hÃ ng */
     #rel-list-grid {
         display: grid !important;
-        /* Tăng chiều rộng tối thiểu cột từ 60px lên 100px -> Thẻ to gấp đôi */
+        /* TÄƒng chiá»u rá»™ng tá»‘i thiá»ƒu cá»™t tá»« 60px lÃªn 100px -> Tháº» to gáº¥p Ä‘Ã´i */
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
         
-        /* Tăng chiều cao hàng từ 80px lên 130px */
+        /* TÄƒng chiá»u cao hÃ ng tá»« 80px lÃªn 130px */
         grid-auto-rows: 130px !important;
         
         gap: 8px !important;
         padding: 5px !important;
-        overflow-y: auto !important; /* Cho phép cuộn */
+        overflow-y: auto !important; /* Cho phÃ©p cuá»™n */
         flex-grow: 1 !important;
     }
 
-    /* 2. Thẻ quan hệ: Căn chỉnh lại nội dung */
+    /* 2. Tháº» quan há»‡: CÄƒn chá»‰nh láº¡i ná»™i dung */
     .rel-card {
         height: 100% !important;
         width: 100% !important;
@@ -905,40 +905,40 @@ canvas {
         border-radius: 8px !important;
         display: flex;
         flex-direction: column;
-        justify-content: space-evenly !important; /* Chia đều khoảng cách */
+        justify-content: space-evenly !important; /* Chia Ä‘á»u khoáº£ng cÃ¡ch */
         align-items: center;
     }
 
-    /* 3. Avatar nhân vật (To hơn) */
+    /* 3. Avatar nhÃ¢n váº­t (To hÆ¡n) */
     .rel-card > div:first-child {
-        width: 30px !important;  /* Tăng từ 12px lên 30px */
+        width: 30px !important;  /* TÄƒng tá»« 12px lÃªn 30px */
         height: 30px !important;
         margin-bottom: 5px !important;
     }
-    .rel-card > div:first-child > div { height: 6px !important; } /* Tóc dày hơn */
+    .rel-card > div:first-child > div { height: 6px !important; } /* TÃ³c dÃ y hÆ¡n */
 
-    /* 4. Tên nhân vật */
+    /* 4. TÃªn nhÃ¢n váº­t */
     .rel-card div:nth-child(2) {
-        font-size: 10px !important; /* Tăng từ 6px lên 10px */
+        font-size: 10px !important; /* TÄƒng tá»« 6px lÃªn 10px */
         margin-bottom: 2px !important;
         font-weight: bold !important;
     }
 
-    /* 5. Điểm số (Màu đỏ) */
+    /* 5. Äiá»ƒm sá»‘ (MÃ u Ä‘á») */
     .rel-score {
-        font-size: 12px !important; /* Tăng từ 8px lên 12px */
+        font-size: 12px !important; /* TÄƒng tá»« 8px lÃªn 12px */
         margin: 2px 0 !important;
     }
 
-    /* 6. Trạng thái (ACQUAINTANCE...) */
+    /* 6. Tráº¡ng thÃ¡i (ACQUAINTANCE...) */
     .rel-status {
-        font-size: 7px !important; /* Tăng từ 4px lên 7px cho dễ đọc */
+        font-size: 7px !important; /* TÄƒng tá»« 4px lÃªn 7px cho dá»… Ä‘á»c */
         padding: 4px 6px !important;
         border-radius: 4px !important;
         max-width: 95% !important;
     }
 
-    /* 4. Nút CLOSE bên dưới */
+    /* 4. NÃºt CLOSE bÃªn dÆ°á»›i */
     #rel-screen > button {
         padding: 4px 15px !important;
         font-size: 8px !important;
@@ -949,41 +949,41 @@ canvas {
 
     button[onclick="Game.showRelList()"], 
     button[onclick="Game.toggleSettings()"] {
-        width: 110px !important;   /* Độ rộng bằng nhau */
-        height: 28px !important;   /* Chiều cao bằng nhau */
+        width: 110px !important;   /* Äá»™ rá»™ng báº±ng nhau */
+        height: 28px !important;   /* Chiá»u cao báº±ng nhau */
         
-        font-size: 8px !important; /* Cỡ chữ nhỏ để vừa 1 dòng */
-        padding: 0 5px !important; /* Padding 2 bên */
+        font-size: 8px !important; /* Cá»¡ chá»¯ nhá» Ä‘á»ƒ vá»«a 1 dÃ²ng */
+        padding: 0 5px !important; /* Padding 2 bÃªn */
         
-        /* Căn giữa chữ */
+        /* CÄƒn giá»¯a chá»¯ */
         display: flex !important;
         align-items: center !important; 
         justify-content: center !important;
         
-        /* QUAN TRỌNG: Cấm xuống dòng */
+        /* QUAN TRá»ŒNG: Cáº¥m xuá»‘ng dÃ²ng */
         white-space: nowrap !important; 
         
         left: 10px !important;
         box-sizing: border-box !important;
     }
 
-    /* Đặt vị trí nút Relations (Ở trên) */
+    /* Äáº·t vá»‹ trÃ­ nÃºt Relations (á»ž trÃªn) */
     button[onclick="Game.showRelList()"] {
         top: 10px !important;
-        /* Nếu chữ vẫn bị to, giảm font riêng nút này xuống xíu */
+        /* Náº¿u chá»¯ váº«n bá»‹ to, giáº£m font riÃªng nÃºt nÃ y xuá»‘ng xÃ­u */
         /* font-size: 7px !important; */ 
     }
 
-    /* Đặt vị trí nút Settings (Ở dưới) */
+    /* Äáº·t vá»‹ trÃ­ nÃºt Settings (á»ž dÆ°á»›i) */
     button[onclick="Game.toggleSettings()"] {
-        top: 45px !important; /* Cách nút trên khoảng 5-7px (10 + 28 + 7 = 45) */
+        top: 45px !important; /* CÃ¡ch nÃºt trÃªn khoáº£ng 5-7px (10 + 28 + 7 = 45) */
     }
 
     #settings-overlay .result-box {
-        width: 50% !important;  /* Chỉ chiếm 50% màn hình thay vì full */
-        height: auto !important; /* Chiều cao tự co giãn theo nội dung */
+        width: 50% !important;  /* Chá»‰ chiáº¿m 50% mÃ n hÃ¬nh thay vÃ¬ full */
+        height: auto !important; /* Chiá»u cao tá»± co giÃ£n theo ná»™i dung */
         max-height: 90% !important;
-        padding: 10px !important; /* Giảm padding */
+        padding: 10px !important; /* Giáº£m padding */
         
         display: flex;
         flex-direction: column;
@@ -991,9 +991,9 @@ canvas {
         justify-content: center;
     }
 
-    /* 2. Tiêu đề "PAUSED" */
+    /* 2. TiÃªu Ä‘á» "PAUSED" */
     #settings-overlay h1 {
-        font-size: 16px !important; /* Giảm font chữ tiêu đề */
+        font-size: 16px !important; /* Giáº£m font chá»¯ tiÃªu Ä‘á» */
         margin: 5px 0 10px 0 !important;
     }
 
@@ -1003,7 +1003,7 @@ canvas {
         margin-bottom: 2px !important;
     }
 
-    /* 4. Các khung chứa nút bấm */
+    /* 4. CÃ¡c khung chá»©a nÃºt báº¥m */
     #settings-overlay > .result-box > div {
         width: 100% !important;
         margin: 2px 0 !important;
@@ -1012,13 +1012,13 @@ canvas {
         align-items: center;
     }
 
-    /* 5. Chỉnh lại các nút bấm (BGM, RESUME, QUIT) */
+    /* 5. Chá»‰nh láº¡i cÃ¡c nÃºt báº¥m (BGM, RESUME, QUIT) */
     #settings-overlay button {
-        width: 70% !important; /* Nút gọn lại, không bè ra 2 bên */
-        height: 25px !important; /* Chiều cao nút cố định nhỏ */
+        width: 70% !important; /* NÃºt gá»n láº¡i, khÃ´ng bÃ¨ ra 2 bÃªn */
+        height: 25px !important; /* Chiá»u cao nÃºt cá»‘ Ä‘á»‹nh nhá» */
         padding: 0 !important;
         font-size: 8px !important;
-        margin: 3px 0 !important; /* Khoảng cách giữa các nút */
+        margin: 3px 0 !important; /* Khoáº£ng cÃ¡ch giá»¯a cÃ¡c nÃºt */
         
         display: flex;
         align-items: center;
@@ -1026,23 +1026,23 @@ canvas {
     }
 
     #interaction-modal {
-        /* 1. Mở rộng chiều ngang để tận dụng 2 bên */
+        /* 1. Má»Ÿ rá»™ng chiá»u ngang Ä‘á»ƒ táº­n dá»¥ng 2 bÃªn */
         width: 90% !important; 
-        max-width: none !important; /* Bỏ giới hạn chiều rộng cũ */
+        max-width: none !important; /* Bá» giá»›i háº¡n chiá»u rá»™ng cÅ© */
         
-        /* 2. Ép chiều cao và vị trí */
+        /* 2. Ã‰p chiá»u cao vÃ  vá»‹ trÃ­ */
         height: auto !important;
-        bottom: 10px !important; /* Sát mép dưới */
-        top: auto !important;    /* Bỏ căn giữa dọc */
+        bottom: 10px !important; /* SÃ¡t mÃ©p dÆ°á»›i */
+        top: auto !important;    /* Bá» cÄƒn giá»¯a dá»c */
         
-        /* 3. Giao diện bên trong */
+        /* 3. Giao diá»‡n bÃªn trong */
         padding: 5px 10px !important;
         /* display: flex !important; */
         flex-direction: column !important;
-        align-items: flex-start !important; /* Căn nội dung sang trái */
+        align-items: flex-start !important; /* CÄƒn ná»™i dung sang trÃ¡i */
     }
 
-    /* Tên nhân vật */
+    /* TÃªn nhÃ¢n váº­t */
     #dialogue-npc-name {
         font-size: 10px !important;
         margin: 2px 0 !important;
@@ -1051,34 +1051,38 @@ canvas {
         width: 100%;
     }
 
-    /* Nội dung lời thoại */
+    /* Nội dung lời thoại - tăng size cho tiếng Anh (trước 9px quá bé) */
     #dialogue-text {
-        font-size: 9px !important;
-        line-height: 1.3 !important;
-        margin: 0 0 5px 0 !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        margin: 0 0 8px 0 !important;
         text-align: left !important;
         width: 100%;
+    }
+    body.lang-vi #dialogue-text {
+        font-size: 13px !important; /* Tiếng Việt: câu hỏi nhỏ hơn một chút */
     }
 
     /* Khu vực các nút bấm */
     #dialogue-options {
         width: 100% !important;
         display: flex !important;
-        flex-direction: row !important; /* QUAN TRỌNG: Xếp nút nằm ngang */
-        gap: 5px !important;
+        flex-direction: row !important;
+        gap: 6px !important;
         justify-content: space-between !important;
     }
 
-    /* Các nút lựa chọn */
-    #dialogue-options button {
-        flex: 1 !important; /* Chia đều chiều rộng cho 3 nút */
-        width: auto !important; /* Ghi đè style inline cũ */
+    /* Các nút lựa chọn - tăng size (trước 7px quá bé, đặc biệt tiếng Việt) */
+    #dialogue-options button,
+    #dialogue-options .dialogue-btn {
+        flex: 1 !important;
+        width: auto !important;
         margin: 0 !important;
-        padding: 6px 2px !important;
-        font-size: 7px !important;
+        padding: 8px 4px !important;
+        font-size: 11px !important;
         
-        /* Xử lý text trong nút */
-        white-space: normal !important; /* Cho phép xuống dòng nếu chữ dài */
+        /* Xá»­ lÃ½ text trong nÃºt */
+        white-space: normal !important; /* Cho phÃ©p xuá»‘ng dÃ²ng náº¿u chá»¯ dÃ i */
         line-height: 1.1 !important;
         display: flex;
         align-items: center;
@@ -1088,7 +1092,7 @@ canvas {
     }
 
     #char-preview {
-        width: 140px !important;  /* Tăng kích thước hiển thị */
+        width: 140px !important;  /* TÄƒng kÃ­ch thÆ°á»›c hiá»ƒn thá»‹ */
         height: 140px !important;
         border-width: 3px !important;
         margin-bottom: 5px !important;
@@ -1099,7 +1103,7 @@ canvas {
         margin-bottom: 2px !important;
     }
 
-    /* Điều chỉnh lại layout Create Box để chứa đủ Preview to */
+    /* Äiá»u chá»‰nh láº¡i layout Create Box Ä‘á»ƒ chá»©a Ä‘á»§ Preview to */
     #create-box {
         flex-direction: row !important;
         align-items: center !important;
@@ -1119,11 +1123,11 @@ canvas {
         flex-direction: row !important;
         flex-wrap: nowrap !important;
         
-        /* Cố định chiều rộng: 4 ô (25px) + 3 gap (5px) + 2 padding bên (5px) = 125px */
+        /* Cá»‘ Ä‘á»‹nh chiá»u rá»™ng: 4 Ã´ (25px) + 3 gap (5px) + 2 padding bÃªn (5px) = 125px */
         width: 125px !important; 
         max-width: 125px !important;
         
-        /* QUAN TRỌNG: Căn trái để ô đầu tiên không bị đẩy ra ngoài */
+        /* QUAN TRá»ŒNG: CÄƒn trÃ¡i Ä‘á»ƒ Ã´ Ä‘áº§u tiÃªn khÃ´ng bá»‹ Ä‘áº©y ra ngoÃ i */
         justify-content: flex-start !important; 
         
         overflow-x: auto !important;
@@ -1131,12 +1135,12 @@ canvas {
         
         gap: 5px !important;
         
-        /* Đệm 2 đầu để ô đầu và ô cuối không dính lề */
+        /* Äá»‡m 2 Ä‘áº§u Ä‘á»ƒ Ã´ Ä‘áº§u vÃ  Ã´ cuá»‘i khÃ´ng dÃ­nh lá» */
         padding: 0 2px !important; 
         
         margin: 0 !important;
         
-        /* Giữ layout cố định */
+        /* Giá»¯ layout cá»‘ Ä‘á»‹nh */
         box-sizing: border-box !important;
         scroll-behavior: smooth;
         
@@ -1145,13 +1149,13 @@ canvas {
         scrollbar-width: none;
     }
 
-    /* Thêm class này để xử lý trạng thái đang chọn */
+    /* ThÃªm class nÃ y Ä‘á»ƒ xá»­ lÃ½ tráº¡ng thÃ¡i Ä‘ang chá»n */
     .color-btn.active {
-        border: 2px solid #000 !important; /* Viền đen đậm */
-        transform: scale(0.9); /* Thu nhỏ xíu để không làm vỡ khung */
+        border: 2px solid #000 !important; /* Viá»n Ä‘en Ä‘áº­m */
+        transform: scale(0.9); /* Thu nhá» xÃ­u Ä‘á»ƒ khÃ´ng lÃ m vá»¡ khung */
     }
 
-    /* Đảm bảo nút màu luôn cứng kích thước */
+    /* Äáº£m báº£o nÃºt mÃ u luÃ´n cá»©ng kÃ­ch thÆ°á»›c */
     .color-btn {
         width: 25px !important;
         height: 25px !important;
@@ -1160,10 +1164,10 @@ canvas {
         border: 1px solid #fff !important;
         border-radius: 2px !important;
         scroll-snap-align: start; 
-        box-sizing: border-box !important; /* Quan trọng để viền không làm to nút */
+        box-sizing: border-box !important; /* Quan trá»ng Ä‘á»ƒ viá»n khÃ´ng lÃ m to nÃºt */
     }
 
-    /* Nút mũi tên điều hướng */
+    /* NÃºt mÅ©i tÃªn Ä‘iá»u hÆ°á»›ng */
     .nav-arrow {
         background: #2f3542 !important;
         color: #fff !important;
@@ -1196,7 +1200,7 @@ canvas {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 200px !important; /* Độ rộng cố định cho 4 màu + 2 nút */
+        width: 200px !important; /* Äá»™ rá»™ng cá»‘ Ä‘á»‹nh cho 4 mÃ u + 2 nÃºt */
         margin: 0 auto !important;
         gap: 5px !important;
     }
@@ -1204,71 +1208,71 @@ canvas {
     #ranking-list .rank-card {
         display: flex !important;
         flex-direction: column !important;
-        align-items: center !important;     /* Căn giữa các div con theo chiều ngang */
-        justify-content: center !important;  /* Căn giữa các div con theo chiều dọc */
+        align-items: center !important;     /* CÄƒn giá»¯a cÃ¡c div con theo chiá»u ngang */
+        justify-content: center !important;  /* CÄƒn giá»¯a cÃ¡c div con theo chiá»u dá»c */
         text-align: center !important;
         padding: 5px !important;
         box-sizing: border-box !important;
     }
 
     #ranking-list .rank-card > div {
-        width: 100% !important;             /* QUAN TRỌNG: Div con phải rộng 100% thì text-align mới có tác dụng */
-        text-align: center !important;       /* Ép chữ bên trong div ra chính giữa */
-        margin: 0 !important;                /* Xóa các margin mặc định có thể gây lệch */
+        width: 100% !important;             /* QUAN TRá»ŒNG: Div con pháº£i rá»™ng 100% thÃ¬ text-align má»›i cÃ³ tÃ¡c dá»¥ng */
+        text-align: center !important;       /* Ã‰p chá»¯ bÃªn trong div ra chÃ­nh giá»¯a */
+        margin: 0 !important;                /* XÃ³a cÃ¡c margin máº·c Ä‘á»‹nh cÃ³ thá»ƒ gÃ¢y lá»‡ch */
     }
 
     #ranking-list .rank-card > div:first-child {
         font-size: 18px !important;    
         font-weight: bold !important;  
         color: #2f3542 !important;     
-        margin-bottom: 4px !important;       /* Chỉ giữ lại margin dưới để tạo khoảng cách với tên */
+        margin-bottom: 4px !important;       /* Chá»‰ giá»¯ láº¡i margin dÆ°á»›i Ä‘á»ƒ táº¡o khoáº£ng cÃ¡ch vá»›i tÃªn */
         text-shadow: 1px 1px 0px #fff; 
-        line-height: 1 !important;           /* Giúp căn giữa theo chiều dọc chuẩn hơn */
+        line-height: 1 !important;           /* GiÃºp cÄƒn giá»¯a theo chiá»u dá»c chuáº©n hÆ¡n */
     }
 
-    /* Thu nhỏ nhẹ tên NPC để cân bằng lại layout */
+    /* Thu nhá» nháº¹ tÃªn NPC Ä‘á»ƒ cÃ¢n báº±ng láº¡i layout */
     #ranking-list .rank-card div:nth-child(2) {
         font-size: 10px !important;
         margin-bottom: 2px !important;
     }
 
-    /* Điểm số (ví dụ: 9.3k) */
+    /* Äiá»ƒm sá»‘ (vÃ­ dá»¥: 9.3k) */
     #ranking-list .rank-card div:last-child {
         font-size: 11px !important;
         font-weight: bold !important;
-        color: #e67e22 !important; /* Màu cam đặc trưng cho điểm số */
+        color: #e67e22 !important; /* MÃ u cam Ä‘áº·c trÆ°ng cho Ä‘iá»ƒm sá»‘ */
     }
 
-    /* --- CẤU HÌNH LẠI MÀN HÌNH TEAM SELECTION (DRAFT) --- */
+    /* --- Cáº¤U HÃŒNH Láº I MÃ€N HÃŒNH TEAM SELECTION (DRAFT) --- */
 
-    /* 1. Ẩn luôn tiêu đề "TEAM SELECTION" vì trong khung đã có chữ "TEAM DRAFT" rồi */
-    /* Việc này giúp tiết kiệm khoảng 30-40px chiều cao quý giá */
+    /* 1. áº¨n luÃ´n tiÃªu Ä‘á» "TEAM SELECTION" vÃ¬ trong khung Ä‘Ã£ cÃ³ chá»¯ "TEAM DRAFT" rá»“i */
+    /* Viá»‡c nÃ y giÃºp tiáº¿t kiá»‡m khoáº£ng 30-40px chiá»u cao quÃ½ giÃ¡ */
     #draft-title {
         display: none !important; 
     }
 
-    /* 2. Mở rộng khung hình ảnh lên tối đa (85% màn hình) */
+    /* 2. Má»Ÿ rá»™ng khung hÃ¬nh áº£nh lÃªn tá»‘i Ä‘a (85% mÃ n hÃ¬nh) */
     #draft-visual {
-        width: 98% !important;        /* Mở rộng bề ngang */
-        height: 85vh !important;      /* Chiếm 85% chiều cao màn hình */
-        margin: 5px auto !important;  /* Căn giữa gọn gàng */
+        width: 98% !important;        /* Má»Ÿ rá»™ng bá» ngang */
+        height: 85vh !important;      /* Chiáº¿m 85% chiá»u cao mÃ n hÃ¬nh */
+        margin: 5px auto !important;  /* CÄƒn giá»¯a gá»n gÃ ng */
         border-width: 3px !important;
         background: #dfe6e9 !important;
         
-        /* Đảm bảo canvas bên trong không bị méo */
+        /* Äáº£m báº£o canvas bÃªn trong khÃ´ng bá»‹ mÃ©o */
         display: flex !important;
         align-items: center;
         justify-content: center;
     }
 
-    /* 3. Canvas ép full khung */
+    /* 3. Canvas Ã©p full khung */
     #draftCanvas {
         width: 100% !important;
         height: 100% !important;
         display: block !important;
     }
 
-    /* 4. Dòng trạng thái nhỏ gọn bên dưới */
+    /* 4. DÃ²ng tráº¡ng thÃ¡i nhá» gá»n bÃªn dÆ°á»›i */
     #draft-status {
         font-size: 8px !important;
         margin: 2px 0 !important;
@@ -1281,10 +1285,10 @@ canvas {
         z-index: 10;
     }
 
-    /* 5. Nút START COMPETITION: Nổi bật ở góc hoặc dưới đáy */
+    /* 5. NÃºt START COMPETITION: Ná»•i báº­t á»Ÿ gÃ³c hoáº·c dÆ°á»›i Ä‘Ã¡y */
     #btn-start-event {
         position: absolute !important;
-        bottom: 10px !important; /* Đặt đè lên góc dưới của màn hình */
+        bottom: 10px !important; /* Äáº·t Ä‘Ã¨ lÃªn gÃ³c dÆ°á»›i cá»§a mÃ n hÃ¬nh */
         left: 50% !important;
         transform: translateX(-50%) !important;
         z-index: 20 !important;
@@ -1306,7 +1310,7 @@ canvas {
         height: 100% !important;
     }
 
-    /* Khung chứa Canvas không bị tràn */
+    /* Khung chá»©a Canvas khÃ´ng bá»‹ trÃ n */
     #comp-canvas-wrapper {
         width: 85vw !important;
         height: 85vh !important;
@@ -1315,19 +1319,19 @@ canvas {
         box-shadow: 0 0 10px rgba(0,0,0,0.5) !important;
     }
 
-    /* 2. Giao diện Kết quả: Chia đôi màn hình (Trái/Phải) */
+    /* 2. Giao diá»‡n Káº¿t quáº£: Chia Ä‘Ã´i mÃ n hÃ¬nh (TrÃ¡i/Pháº£i) */
     .res-layout {
         display: flex !important;
-        flex-direction: row !important; /* Xếp ngang */
+        flex-direction: row !important; /* Xáº¿p ngang */
         width: 95% !important;
         height: 80% !important;
         align-items: center !important;
         gap: 15px !important;
     }
 
-    /* Bên Trái: Bảng Xếp Hạng */
+    /* BÃªn TrÃ¡i: Báº£ng Xáº¿p Háº¡ng */
     .res-left {
-        flex: 2 !important; /* Chiếm 2/3 màn hình */
+        flex: 2 !important; /* Chiáº¿m 2/3 mÃ n hÃ¬nh */
         height: 100% !important;
         overflow-y: auto !important;
         border: 2px solid #2f3542 !important;
@@ -1336,9 +1340,9 @@ canvas {
         padding: 5px !important;
     }
 
-    /* Bên Phải: Điểm số & Nút bấm */
+    /* BÃªn Pháº£i: Äiá»ƒm sá»‘ & NÃºt báº¥m */
     .res-right {
-        flex: 1 !important; /* Chiếm 1/3 màn hình */
+        flex: 1 !important; /* Chiáº¿m 1/3 mÃ n hÃ¬nh */
         display: flex !important;
         flex-direction: column !important;
         justify-content: center !important;
@@ -1346,7 +1350,7 @@ canvas {
         height: 100% !important;
     }
 
-    /* Tinh chỉnh nút bấm cho gọn */
+    /* Tinh chá»‰nh nÃºt báº¥m cho gá»n */
     .res-btn {
         width: 100% !important;
         padding: 10px 0 !important;
@@ -1354,7 +1358,7 @@ canvas {
         margin-top: 10px !important;
     }
 
-    /* Thu nhỏ tiêu đề để không chiếm chỗ */
+    /* Thu nhá» tiÃªu Ä‘á» Ä‘á»ƒ khÃ´ng chiáº¿m chá»— */
     #round-result-overlay h2, 
     #comp-result-overlay h1 {
         font-size: 14px !important;
@@ -1362,39 +1366,39 @@ canvas {
         margin-top: 0 !important;
     }
 
-    /* Sửa lại cái khung chứa canvas bên trong */
+    /* Sá»­a láº¡i cÃ¡i khung chá»©a canvas bÃªn trong */
     #comp-screen > div:first-of-type {
         width: 90% !important; 
-        height: 80% !important; /* Thay vì 450px cố định, hãy dùng % */
-        max-height: 500px; /* Giới hạn tối đa để không quá to */
-        margin: 0 !important; /* Bỏ margin auto cũ */
+        height: 80% !important; /* Thay vÃ¬ 450px cá»‘ Ä‘á»‹nh, hÃ£y dÃ¹ng % */
+        max-height: 500px; /* Giá»›i háº¡n tá»‘i Ä‘a Ä‘á»ƒ khÃ´ng quÃ¡ to */
+        margin: 0 !important; /* Bá» margin auto cÅ© */
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
 
     #room-notification {
-        position: fixed !important;      /* Luôn cố định theo màn hình, không theo Map */
+        position: fixed !important;      /* LuÃ´n cá»‘ Ä‘á»‹nh theo mÃ n hÃ¬nh, khÃ´ng theo Map */
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         
-        width: 85% !important;           /* Chiếm 85% chiều ngang màn hình */
+        width: 85% !important;           /* Chiáº¿m 85% chiá»u ngang mÃ n hÃ¬nh */
         max-width: 400px !important;
         height: auto !important;
-        max-height: 90vh !important;     /* Không cao quá 90% màn hình */
+        max-height: 90vh !important;     /* KhÃ´ng cao quÃ¡ 90% mÃ n hÃ¬nh */
         
-        overflow-y: auto !important;     /* Cho phép cuộn nếu nội dung quá dài */
-        z-index: 5000 !important;        /* Luôn nổi lên trên cùng */
+        overflow-y: auto !important;     /* Cho phÃ©p cuá»™n náº¿u ná»™i dung quÃ¡ dÃ i */
+        z-index: 5000 !important;        /* LuÃ´n ná»•i lÃªn trÃªn cÃ¹ng */
         
         background: #fff !important;
         border: 4px solid #2f3542 !important;
         border-radius: 10px !important;
         padding: 15px !important;
-        box-shadow: 0 0 0 1000px rgba(0,0,0,0.6) !important; /* Làm tối nền đằng sau */
+        box-shadow: 0 0 0 1000px rgba(0,0,0,0.6) !important; /* LÃ m tá»‘i ná»n Ä‘áº±ng sau */
     }
 
-    /* Tinh chỉnh nút chọn file cho to dễ bấm */
+    /* Tinh chá»‰nh nÃºt chá»n file cho to dá»… báº¥m */
     #stage-setup-area button {
         padding: 12px !important;
         margin-top: 5px !important;
@@ -1408,7 +1412,7 @@ canvas {
         background: rgba(0,0,0,0.85) !important;
     }
 
-    /* Tiêu đề STAGE CLEAR */
+    /* TiÃªu Ä‘á» STAGE CLEAR */
     #stage-detail-overlay h1 {
         position: absolute;
         top: 10px;
@@ -1419,11 +1423,11 @@ canvas {
         text-align: center;
     }
 
-    /* Khung chứa nội dung kết quả */
+    /* Khung chá»©a ná»™i dung káº¿t quáº£ */
     #stage-detail-content {
         width: 85vw !important;
         height: 75vh !important;
-        margin-top: 30px !important; /* Chừa chỗ cho tiêu đề */
+        margin-top: 30px !important; /* Chá»«a chá»— cho tiÃªu Ä‘á» */
         background: #fff !important;
         border: 4px solid #fff !important;
         border-radius: 12px !important;
@@ -1432,7 +1436,7 @@ canvas {
         overflow: hidden !important;
     }
 
-    /* --- LAYOUT CHIA ĐÔI (Trái - Phải) --- */
+    /* --- LAYOUT CHIA ÄÃ”I (TrÃ¡i - Pháº£i) --- */
     .stage-res-layout {
         display: flex !important;
         width: 100%;
@@ -1440,7 +1444,7 @@ canvas {
         flex-direction: row !important; 
     }
 
-    /* Cột Trái: Hạng (S, A, B) & Độ khó */
+    /* Cá»™t TrÃ¡i: Háº¡ng (S, A, B) & Äá»™ khÃ³ */
     .sr-left {
         flex: 1 !important;
         background: #f1f2f6;
@@ -1451,21 +1455,21 @@ canvas {
         border-right: 2px dashed #ccc;
     }
 
-    /* Cột Phải: Chi tiết điểm & Nút */
+    /* Cá»™t Pháº£i: Chi tiáº¿t Ä‘iá»ƒm & NÃºt */
     .sr-right {
-        flex: 1.5 !important; /* Rộng hơn chút để chứa bảng điểm */
+        flex: 1.5 !important; /* Rá»™ng hÆ¡n chÃºt Ä‘á»ƒ chá»©a báº£ng Ä‘iá»ƒm */
         padding: 10px 20px !important;
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
 
-    /* Tinh chỉnh text trong cột trái */
+    /* Tinh chá»‰nh text trong cá»™t trÃ¡i */
     .grade-text { font-size: 60px !important; margin: 5px 0 !important; }
     .acc-text { font-size: 10px !important; }
     .diff-stars { font-size: 10px !important; margin-top: 5px !important; }
 
-    /* Tinh chỉnh bảng điểm bên phải */
+    /* Tinh chá»‰nh báº£ng Ä‘iá»ƒm bÃªn pháº£i */
     .score-row {
         display: flex;
         justify-content: space-between;
@@ -1475,7 +1479,7 @@ canvas {
         padding-bottom: 2px;
     }
 
-    /* Tổng điểm to */
+    /* Tá»•ng Ä‘iá»ƒm to */
     .total-score-box {
         background: #feca57 !important;
         color: #fff !important;
@@ -1487,7 +1491,7 @@ canvas {
         margin: 10px 0 !important;
     }
 
-    /* Nút Continue */
+    /* NÃºt Continue */
     #btn-stage-continue {
         width: 100%;
         padding: 12px !important;
@@ -1498,17 +1502,42 @@ canvas {
         font-size: 12px !important;
         box-shadow: 0 4px 0 #006266;
     }
+
+    button[onclick="Game.showRelList()"], 
+    button[onclick="Game.toggleSettings()"] {
+        /* THAY ĐỔI: Sử dụng width tự động hoặc tăng chiều rộng */
+        width: 140px !important;    /* Tăng từ 110px lên 140px để chứa đủ chữ tiếng Việt */
+        height: 32px !important;    /* Tăng nhẹ chiều cao để chữ không chạm viền */
+        
+        font-size: 11px !important; /* Giảm nhẹ font size riêng cho mobile nếu vẫn tràn */
+        padding: 0 8px !important;
+        
+        display: flex !important;
+        align-items: center !important; 
+        justify-content: center !important;
+        white-space: nowrap !important; 
+        left: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    button[onclick="Game.showRelList()"] {
+        top: 10px !important;
+    }
+
+    button[onclick="Game.toggleSettings()"] {
+        top: 48px !important; /* Điều chỉnh lại khoảng cách top để không đè nhau */
+    }
 }
 
-/* --- TĂNG KÍCH THƯỚC NÚT START GAME --- */
+/* --- TÄ‚NG KÃCH THÆ¯á»šC NÃšT START GAME --- */
 #title-screen button {
-    font-size: 20px !important;       /* Chữ to hơn (gấp đôi bình thường) */
-    padding: 20px 60px !important;    /* Nút dày và dài hơn */
-    border-width: 4px !important;     /* Viền dày hơn */
-    margin-top: 50px !important;      /* Cách xa tiêu đề một chút */
-    box-shadow: 6px 6px 0 #000 !important; /* Bóng đổ đậm hơn */
+    font-size: 20px !important;       /* Chá»¯ to hÆ¡n (gáº¥p Ä‘Ã´i bÃ¬nh thÆ°á»ng) */
+    padding: 20px 60px !important;    /* NÃºt dÃ y vÃ  dÃ i hÆ¡n */
+    border-width: 4px !important;     /* Viá»n dÃ y hÆ¡n */
+    margin-top: 50px !important;      /* CÃ¡ch xa tiÃªu Ä‘á» má»™t chÃºt */
+    box-shadow: 6px 6px 0 #000 !important; /* BÃ³ng Ä‘á»• Ä‘áº­m hÆ¡n */
     
-    /* Hiệu ứng nhấp nháy nhẹ để mời gọi bấm */
+    /* Hiá»‡u á»©ng nháº¥p nhÃ¡y nháº¹ Ä‘á»ƒ má»i gá»i báº¥m */
     animation: pulse 1.5s infinite alternate;
 }
 
@@ -1519,34 +1548,431 @@ canvas {
 
 @media (min-width: 1024px) {
     #npc-list-grid {
-        /* Tăng số lượng cột bằng cách giảm min-width của mỗi cột */
+        /* TÄƒng sá»‘ lÆ°á»£ng cá»™t báº±ng cÃ¡ch giáº£m min-width cá»§a má»—i cá»™t */
         grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
         
-        /* Giảm khoảng cách giữa các thẻ xuống cực nhỏ */
+        /* Giáº£m khoáº£ng cÃ¡ch giá»¯a cÃ¡c tháº» xuá»‘ng cá»±c nhá» */
         gap: 6px; 
         
-        /* Căn giữa grid trong màn hình to */
+        /* CÄƒn giá»¯a grid trong mÃ n hÃ¬nh to */
         max-width: 900px;
         margin: 0 auto;
-        max-height: 75vh; /* Tăng vùng nhìn thấy trên PC */
+        max-height: 75vh; /* TÄƒng vÃ¹ng nhÃ¬n tháº¥y trÃªn PC */
     }
 
-    /* Thu nhỏ thẻ card trên PC */
+    /* Thu nhá» tháº» card trÃªn PC */
     .rank-card {
-        padding: 5px !important;      /* Giảm lề trong */
-        min-height: auto !important;  /* Bỏ chiều cao tối thiểu cứng */
-        font-size: 0.8em;             /* Giảm cỡ chữ */
+        padding: 5px !important;      /* Giáº£m lá» trong */
+        min-height: auto !important;  /* Bá» chiá»u cao tá»‘i thiá»ƒu cá»©ng */
+        font-size: 0.8em;             /* Giáº£m cá»¡ chá»¯ */
     }
 
-    /* Thu nhỏ avatar trên PC */
+    /* Thu nhá» avatar trÃªn PC */
     .rank-card > div:first-child {
-        width: 15px !important;       /* Avatar nhỏ lại */
+        width: 15px !important;       /* Avatar nhá» láº¡i */
         height: 15px !important;
     }
     
-    /* Ẩn bớt thông tin rườm rà nếu cần, hoặc chỉnh font siêu nhỏ */
+    /* áº¨n bá»›t thÃ´ng tin rÆ°á»m rÃ  náº¿u cáº§n, hoáº·c chá»‰nh font siÃªu nhá» */
     .rank-card div {
         line-height: 1.2;
     }
 }
+
+/* --- SONG DRAFT PREVIEW OVERLAY --- */
+#song-draft-overlay {
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 100%;
+    background: rgba(45, 52, 54, 0.98); /* Ná»n tá»‘i má» */
+    z-index: 9999;
+    display: flex; flex-direction: column; 
+    align-items: center; justify-content: center;
+    color: #fff;
+}
+
+.draft-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Grid chá»©a cÃ¡c bÃ i hÃ¡t */
+.song-grid {
+    display: flex; 
+    flex-wrap: wrap; /* Tá»± Ä‘á»™ng rá»›t dÃ²ng náº¿u thiáº¿u chá»— */
+    gap: 15px; 
+    justify-content: center;
+    width: 95%; 
+    max-width: 800px;
+    max-height: 60vh; /* Chá»‘ng trÃ n mÃ n hÃ¬nh trÃªn mobile nhá» */
+    overflow-y: auto; /* Cho phÃ©p cuá»™n náº¿u quÃ¡ nhiá»u */
+    padding: 10px;
+}
+
+/* Tháº» bÃ i hÃ¡t */
+.song-card {
+    background: #2f3542; 
+    border: 3px solid #74b9ff; 
+    border-radius: 12px;
+    padding: 15px; 
+    width: calc(50% - 15px); /* Mobile: 2 cá»™t */
+    min-width: 130px;
+    max-width: 160px;
+    text-align: center; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between;
+    box-shadow: 4px 4px 0 rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+}
+
+.song-card:active {
+    transform: scale(0.95);
+}
+
+.song-title {
+    font-size: 12px; 
+    font-weight: bold; 
+    color: #fff; 
+    margin-bottom: 5px;
+    word-wrap: break-word;
+}
+
+.song-concept {
+    font-size: 9px; 
+    color: #ff9ff3; 
+    margin-bottom: 15px;
+    background: rgba(0,0,0,0.3);
+    padding: 3px;
+    border-radius: 3px;
+}
+
+.play-preview-btn {
+    background: #00b894; 
+    color: white; 
+    border: 2px solid #fff; 
+    padding: 8px 5px; 
+    border-radius: 8px; 
+    font-size: 9px;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: bold;
+    box-shadow: 0 3px 0 #008c72;
+}
+
+.play-preview-btn.playing {
+    background: #d63031;
+    box-shadow: 0 3px 0 #b33939;
+}
+
+/* NÃºt Next to bá»± á»Ÿ dÆ°á»›i */
+.draft-action-btn {
+    margin-top: 20px;
+    background: #e84393;
+    color: #fff;
+    border: 3px solid #fff;
+    padding: 15px 20px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #b33939;
+}
+
+/* Äiá»u chá»‰nh riÃªng cho PC (mÃ n hÃ¬nh rá»™ng hÆ¡n 768px) */
+@media (min-width: 768px) {
+    .song-card { width: 140px; } /* Tá»± dÃ n hÃ ng 5 bÃ i hÃ¡t cho Ä‘áº¹p */
+    .song-title { font-size: 14px; }
+}
+
+/* --- RESPONSIVE MINIGAME WRAPPER --- */
+.responsive-game-wrapper {
+    position: relative;
+    background: #000;
+    border: 4px solid #fff;
+    border-radius: 8px;
+    overflow: hidden; /* TrÃ¡nh cÃ¡c object bay ra ngoÃ i viá»n */
+    touch-action: none;
+    user-select: none;
+    
+    /* Tá»± Ä‘á»™ng co giÃ£n nhÆ°ng tá»‘i Ä‘a chá»‰ to báº±ng mÃ n hÃ¬nh trá»« Ä‘i cÃ¡c viá»n */
+    width: 95vw; 
+    max-width: 800px; /* Giá»›i háº¡n Ä‘á»™ rá»™ng tá»‘i Ä‘a trÃªn PC */
+    
+    /* Giá»¯ tá»‰ lá»‡ khung hÃ¬nh (Aspect Ratio). TÃ¹y báº¡n chá»n: 
+       4:3 (hÆ¡i vuÃ´ng, há»£p PC), 16:9 (rá»™ng), hoáº·c tá»± do. á»ž Ä‘Ã¢y tÃ´i dÃ¹ng tá»‰ lá»‡ chuáº©n cho game 2D lÃ  4/3 */
+    aspect-ratio: 4 / 3; 
+    max-height: 75vh; /* Äáº£m báº£o khÃ´ng bá»‹ lá»‘ chiá»u dá»c trÃªn mÃ n hÃ¬nh ngang */
+}
+
+/* Äáº£m báº£o Canvas luÃ´n láº¥p Ä‘áº§y cÃ¡i Wrapper */
+.responsive-game-wrapper canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* MÃ n hÃ¬nh má» Ä‘Ã¨ lÃªn game (Overlay) */
+.game-overlay {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.85); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    color: #fff; 
+    z-index: 10;
+}
+
+#comp-overlay button {
+    position: relative;
+    z-index: 100 !important; 
+    pointer-events: auto !important;
+}
+
+body.lang-vi {
+    font-family: 'VT323', 'Press Start 2P', cursive;
+    letter-spacing: 0.25px;
+    font-size-adjust: 0.72;
+}
+
+body.lang-vi button,
+body.lang-vi input,
+body.lang-vi textarea,
+body.lang-vi select,
+body.lang-vi #game-container {
+    font-family: 'VT323', 'Press Start 2P', cursive !important;
+    font-size-adjust: 0.72;
+}
+
+body.lang-vi h1,
+body.lang-vi h2,
+body.lang-vi h3,
+body.lang-vi button,
+body.lang-vi label,
+body.lang-vi p,
+body.lang-vi span,
+body.lang-vi div {
+    line-height: 1.25;
+}
+
+body.lang-vi button { font-size: 12px !important; }
+body.lang-vi h1 { font-size: 22px; }
+body.lang-vi h2 { font-size: 20px; }
+body.lang-vi h3 { font-size: 18px; }
+body.lang-vi #hub-stats-display,
+body.lang-vi #room-notification,
+body.lang-vi #interaction-modal,
+body.lang-vi #minigame-info,
+body.lang-vi #day-summary-screen,
+body.lang-vi #result-screen,
+body.lang-vi #settings-overlay {
+    font-size: 1.18em;
+}
+
+body.lang-vi #dialogue-text { font-size: 18px !important; line-height: 2.05 !important; letter-spacing: 0.35px; }
+body.lang-vi #dialogue-npc-name { font-size: 24px !important; }
+body.lang-vi .dialogue-btn { font-size: 16px !important; line-height: 1.55; padding: 18px 12px; }
+body.lang-vi #game-toast { font-size: 15px !important; line-height: 1.8 !important; letter-spacing: 0.3px; }
+body.lang-vi #room-notification p { line-height: 1.7 !important; }
+body.lang-vi #mg-countdown { font-size: 100px !important; letter-spacing: 2px; text-align: center !important; font-family: 'VT323', 'Press Start 2P', cursive !important; }
+body.lang-vi #btn-tut-start {
+    font-family: 'VT323', 'Press Start 2P', cursive !important;
+    text-align: center !important;
+    display: inline-flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+body.lang-vi #minigame-info { font-size: 16px !important; line-height: 1.6; }
+body.lang-vi #day-summary-screen { font-size: 1.28em; }
+body.lang-vi #day-summary-screen h1 { font-size: 34px !important; }
+body.lang-vi #day-summary-screen button { font-size: 16px !important; padding: 16px 22px !important; }
+body.lang-vi #elimination-msg { font-size: 14px !important; line-height: 1.5; }
+body.lang-vi #interaction-modal { max-width: 760px; }
+
+/* ===== MOBILE: Hide avatar in result/ranking cards (fixes broken display) ===== */
+@media (max-width: 1024px) {
+    #ranking-list .rank-card .rank-avatar,
+    #team-reveal-list .rank-card .rank-avatar {
+        display: none !important;
+    }
+}
+
+/* ===== MOBILE-FIRST STABILITY PATCH ===== */
+@media (max-width: 1024px) {
+    #game-container {
+        width: 100vw;
+        height: 100dvh;
+        min-height: 100dvh;
+    }
+
+    h1 { font-size: clamp(18px, 5vw, 26px) !important; }
+    h2 { font-size: clamp(14px, 4.2vw, 20px) !important; }
+    button { font-size: clamp(10px, 2.8vw, 14px) !important; }
+
+    #hub-stats-display {
+        top: 8px !important;
+        right: 8px !important;
+        min-width: 132px;
+        padding: 10px 12px;
+        font-size: 10px;
+        line-height: 1.45;
+    }
+
+    #room-notification {
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: min(92vw, 430px) !important;
+        max-height: 86dvh !important;
+        overflow-y: auto;
+        padding: 14px !important;
+    }
+
+    #room-action-btn,
+    #room-cancel-btn {
+        width: 100%;
+        margin: 6px 0;
+    }
+
+    #interaction-modal {
+        width: min(94vw, 760px) !important;
+        max-width: min(94vw, 760px) !important;
+        bottom: 3% !important;
+        padding: 18px !important;
+    }
+
+    #minigame-canvas-container {
+        width: min(96vw, 860px) !important;
+        height: min(58dvh, 520px) !important;
+        border-width: 3px !important;
+    }
+
+    #comp-canvas-wrapper {
+        width: min(96vw, 900px) !important;
+        height: min(60dvh, 540px) !important;
+        margin-top: 8px !important;
+    }
+
+    #comp-title {
+        font-size: clamp(12px, 3.3vw, 18px) !important;
+        margin: 8px 0 !important;
+        padding: 0 8px;
+    }
+
+    #draft-visual {
+        width: 96% !important;
+        height: min(72dvh, 580px) !important;
+    }
+
+    #ranking-list {
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+        gap: 8px !important;
+        padding: 6px !important;
+    }
+
+    .rank-card {
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 155px !important;
+        height: auto !important;
+        padding: 8px 6px !important;
+    }
+
+    .result-box {
+        width: 95% !important;
+        height: auto !important;
+        max-height: 74dvh !important;
+    }
+
+    .score-box {
+        width: min(92vw, 420px);
+        padding: 14px;
+    }
+
+    .res-layout {
+        flex-direction: column !important;
+        width: 96% !important;
+        height: auto !important;
+        max-height: 84dvh !important;
+        gap: 10px !important;
+        overflow: auto;
+        padding-bottom: 8px;
+    }
+
+    .res-table,
+    .res-summary {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    #stage-ui {
+        flex-direction: column !important;
+    }
+
+    .side-panel {
+        width: 100% !important;
+        min-height: 120px;
+        border-right: none !important;
+        border-bottom: 3px solid #2f3542;
+        order: 2;
+    }
+
+    #main-stage {
+        width: 100% !important;
+        min-height: 45dvh;
+        border-left: none !important;
+        border-right: none !important;
+        order: 1;
+    }
+
+    #title-screen button {
+        font-size: clamp(14px, 4vw, 20px) !important;
+        padding: 14px 28px !important;
+        margin-top: 26px !important;
+    }
+}
+
+@media (max-width: 640px) {
+    #npc-list-grid,
+    #rel-list-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    #dialogue-text {
+        font-size: 16px !important;
+        line-height: 1.8 !important;
+    }
+
+    .dialogue-btn {
+        font-size: 13px !important;
+        padding: 12px 8px !important;
+    }
+
+    #game-toast {
+        width: min(92vw, 420px);
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #comp-canvas-wrapper,
+    #minigame-canvas-container,
+    #draft-visual {
+        height: min(76dvh, 420px) !important;
+    }
+
+    #hub-stats-display {
+        font-size: 9px !important;
+        padding: 6px 8px !important;
+    }
+}
+/* ===== END MOBILE-FIRST STABILITY PATCH ===== */
 

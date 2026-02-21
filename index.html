@@ -3,6 +3,7 @@
 <head>
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     
@@ -26,12 +27,31 @@
 <div id="game-container">
     <div id="game-toast"></div>
 
-    <div id="team-reveal-screen" class="screen" style="background: #222; color: #fff;">
-        <h1 style="color: #feca57; text-shadow: 0 0 10px #e67e22; margin-bottom: 30px;">TEAM BATTLE RESULTS</h1>
-        <div id="team-reveal-list" style="display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 600px;"></div>
-        <button id="btn-reveal-next" onclick="Game.showDaySummary()" style="margin-top: 30px; display: none; background: #fff; color: #222;">VIEW MY TOTAL</button>
+    <div id="team-reveal-screen" class="screen" style="background: #2f3542; color: #fff;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; min-height: 100vh;">
+            <h1 style="color: #feca57; text-shadow: 0 0 10px #e67e22; margin-bottom: 30px; text-align: center;">TEAM BATTLE RESULTS</h1>
+            <div id="team-reveal-list" style="display: flex; flex-direction: column; gap: 15px; width: 90%; max-width: 600px;"></div>
+            <button id="btn-reveal-next" style="margin-top: 30px; display: none; background: #fff; color: #222; padding: 15px 30px; font-weight: bold; border-radius: 8px;">CONTINUE TO RANKING</button>
+        </div>
     </div>
 
+    <div id="song-draft-overlay" style="display:none;">
+        <div class="draft-header">
+            <h1 style="color: #ffeaa7; text-shadow: 2px 2px 0 #d35400;">SONG PREVIEW</h1>
+            <p style="font-size: 10px; color: #dfe6e9; margin-top: 10px; line-height: 1.5;">
+                LISTEN TO THE 5 STAGE SONGS<br>(30s PREVIEW)
+            </p>
+        </div>
+        
+        <div id="draft-song-list" class="song-grid">
+            </div>
+        
+        <button id="btn-to-minigame" class="draft-action-btn">
+            NEXT: PLAY MINIGAME FOR PICKING ORDER
+        </button>
+    </div>
+
+    <!-- ??? -->
     <div id="day-summary-screen" class="screen" style="background: #fff9c4;">
         <h1 style="color: #2f3542; font-size: 28px;">DAILY BREAKDOWN</h1>
         <div style="background: #fff; border: 4px solid #2f3542; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; color: #2f3542;">
@@ -54,40 +74,50 @@
     <div id="comp-result-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:100; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
         </div>
 
-    <div id="comp-screen" class="screen" style="background: #2d3436;">
-        <h2 id="comp-title" style="color: #fab1a0; margin-top: 10px; margin-bottom: 10px; text-align: center;">EVENT NAME</h2>
+    <div id="comp-screen" class="screen" style="background: #2d3436; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <h2 id="comp-title" style="color: #fab1a0; margin: 10px 0; text-align: center; font-size: 16px;">EVENT NAME</h2>
         
-        <div id="comp-canvas-wrapper" style="position: relative; margin: 0 auto; background: #000; border: 4px solid #fff;">
+        <div id="comp-canvas-wrapper" class="responsive-game-wrapper">
             <canvas id="compCanvas"></canvas>
             
-            <div id="comp-overlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; z-index: 10;">
-                <h1 id="comp-name" style="color:#ffeaa7; font-size: 20px;">GAME NAME</h1>
-                <p id="comp-desc" style="font-size:10px; margin:15px 0; text-align:center; line-height:1.6; padding:0 20px;">...</p>
-                <button onclick="Competition.startGame()" style="font-size: 12px; padding: 10px 20px;">READY?</button>
+            <div id="comp-overlay" class="game-overlay">
+                <h1 id="comp-name" style="color:#ffeaa7; font-size: clamp(16px, 4vw, 24px); margin-bottom: 10px;">GAME NAME</h1>
+                <p id="comp-desc" style="font-size:clamp(8px, 2vw, 12px); margin:15px 0; text-align:center; line-height:1.6; padding:0 20px;">...</p>
+                <button onclick="Competition.startGame()" style="font-size: 12px; padding: 12px 25px; margin-top: 15px;">READY?</button>
             </div>
 
-            <div id="comp-hud" style="position:absolute; top:10px; left:10px; color:#fff; font-size:10px; display:none; z-index: 5;">
+            <div id="comp-hud" style="position:absolute; top:15px; left:15px; color:#fff; font-size:12px; display:none; z-index: 5; text-shadow: 2px 2px 0 #000;">
                 TIME: <span id="c-time">30</span> | SCORE: <span id="c-score">0</span>
             </div>
 
-            <div id="round-result-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:90; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+            <div id="round-result-overlay" class="game-overlay" style="display:none; z-index:90;">
                 </div>
         </div>
     </div>
 
     <div id="settings-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1999; flex-direction:column; align-items:center; justify-content:center;">
-        <div class="result-box" style="width:500px; height:auto; background:#fff; border:4px solid #2f3542; text-align:center; padding: 40px;">
-            <h1 style="margin-top:0; color:#2f3542; font-size: 40px; margin-bottom: 30px;">PAUSED</h1>
-            <div style="margin:30px 0;">
-                <label style="font-size:14px; color:#555; margin-bottom: 10px; display:block;">AUDIO SETTINGS</label>
-                <button id="btn-setting-bgm" onclick="BGM.toggle(); Game.updateSettingsUI()" style="width:100%; padding: 20px; font-size: 16px;">🔊 BGM ON</button>
-            </div>
-            <div style="display:flex; flex-direction:column; gap: 15px;">
-                <button onclick="Game.toggleSettings()" style="width:100%; padding: 20px; font-size: 16px; background:#00b894; color:#fff;">RESUME GAME</button>
-                <button onclick="Game.quitToTitle()" style="width:100%; padding: 20px; font-size: 16px; background:#d63031; color:#fff;">QUIT TO TITLE</button>
-            </div>
+    <div class="result-box" style="width:500px; height:auto; background:#fff; border:4px solid #2f3542; text-align:center; padding: 40px;">
+        
+        <h1 id="txt-paused" style="margin-top:0; color:#2f3542; font-size: 40px; margin-bottom: 30px;">PAUSED</h1>
+        
+        <div style="margin:30px 0;">
+            <label id="txt-audio-label" style="font-size:14px; color:#555; margin-bottom: 10px; display:block;">AUDIO SETTINGS</label>
+            <button id="btn-setting-bgm" onclick="BGM.toggle(); Game.updateSettingsUI()" style="width:100%; padding: 20px; font-size: 16px;">🔊 BGM ON</button>
+        </div>
+
+        <div style="margin:0 0 30px 0;">
+             <label id="txt-lang-label" style="font-size:14px; color:#555; margin-bottom: 10px; display:block;">LANGUAGE</label>
+             <button id="btn-change-lang" onclick="Game.toggleLanguage()" style="width:100%; padding: 20px; font-size: 16px; background:#74b9ff; color:#fff; border:none; cursor:pointer;">
+                English
+             </button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap: 15px;">
+            <button id="btn-resume" onclick="Game.toggleSettings()" style="width:100%; padding: 20px; font-size: 16px; background:#00b894; color:#fff;">RESUME GAME</button>
+            <button id="btn-quit" onclick="Game.quitToTitle()" style="width:100%; padding: 20px; font-size: 16px; background:#d63031; color:#fff;">QUIT TO TITLE</button>
         </div>
     </div>
+</div>
 
     <div id="title-screen" class="screen active">
         <div class="title-logo">
@@ -158,7 +188,7 @@
         <div id="hub-ui-overlay">
             <div id="hub-stats-display">
                 <div id="display-name" style="color:var(--primary); font-weight:bold; margin-bottom:5px; font-size:12px;">PLAYER</div>
-                <div style="color:var(--wood-dark)">DAY: <span id="day-counter">1</span>/30</div>
+                <div style="color:var(--wood-dark)">DAY: <span id="day-counter">1</span>/35</div>
                 <hr style="margin:5px 0; border:1px dashed #ccc;">
                 <div>STA: <span id="d-stamina">50</span></div>
                 <div>VOC: <span id="d-vocal">0</span></div>
@@ -175,45 +205,23 @@
             <div id="room-notification" style="display:none;">
                 <h2 id="room-title">ROOM</h2>
                 <p id="room-desc" style="font-size:10px; margin:15px 0; color:#555;">...</p>
-                <div id="stage-setup-area" style="display:none; margin-bottom:15px; padding:10px; background:#f1f2f6; border:2px dashed #2f3542; border-radius:8px;">
-    
-                    <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
-                        <button onclick="Game.toggleMusicSource('file')" id="tab-file" style="flex:1; padding:5px; font-size:8px; background:#2f3542; color:#fff;">📁 FILE</button>
-                        <button onclick="Game.toggleMusicSource('url')" id="tab-url" style="flex:1; padding:5px; font-size:8px; background:#ccc; color:#000;">🌐 LINK</button>
+                <div id="stage-setup-area" style="display:none; margin-bottom:15px; padding:15px; background:#f1f2f6; border:2px dashed #2f3542; border-radius:8px;">
+                    <div style="background:#2f3542; color:#fff; padding:10px; border-radius:8px; margin-bottom:15px;">
+                        <div style="font-size:8px; color:#aaa; margin-bottom:5px;">DRAFTED SONG:</div>
+                        <div id="drafted-song-name" style="font-size:14px; font-weight:bold; color:#feca57;">SONG NAME</div>
+                        <div id="drafted-song-concept" style="font-size:10px; color:#ff9ff3; margin-top:5px; text-transform:uppercase;">CONCEPT</div>
                     </div>
-
-                    <div id="source-file-area">
-                        <input type="file" id="song-input" accept="audio/*" style="display:none" onchange="Game.handleSongUpload(this)">
-                        <button onclick="document.getElementById('song-input').click()" style="width:100%; padding:15px; background:#fff; border:2px solid #aaa; color:#333; font-weight:bold;">
-                            📂 TAP TO SELECT MP3
-                        </button>
-                    </div>
-
-                    <div id="source-url-area" style="display:none;">
-                        <input type="text" id="song-url-input" placeholder="Paste .mp3 link here..." style="width:95%; padding:10px; border:2px solid #ccc; font-size:10px; margin-bottom:5px;">
-                        <button onclick="Game.loadSongFromUrl()" style="width:100%; padding:10px; background:#0984e3; color:#fff;">LOAD URL</button>
-                        <p style="font-size:7px; color:#e74c3c; margin-top:5px;">*Youtube/Spotify links won't work due to copyright.</p>
-                    </div>
-
-                    <div id="song-name-display" style="font-size:10px; color:#27ae60; margin-top:10px; font-weight:bold; text-align:center; min-height:15px;"></div>
-
-                    <div id="concept-selector" style="display:none; margin-top:10px; border-top:1px solid #ccc; padding-top:10px;">
-                        <div style="font-size:8px; margin-bottom:5px; text-align:center;">SELECT CONCEPT:</div>
-                        <div style="display:flex; justify-content:center; gap:5px;">
-                            <button onclick="Game.selectConcept('vocal')" class="concept-btn" id="btn-c-vocal" style="flex:1; padding:8px 5px; font-size:8px;">VOCAL</button>
-                            <button onclick="Game.selectConcept('dance')" class="concept-btn" id="btn-c-dance" style="flex:1; padding:8px 5px; font-size:8px;">DANCE</button>
-                            <button onclick="Game.selectConcept('rap')" class="concept-btn" id="btn-c-rap" style="flex:1; padding:8px 5px; font-size:8px;">RAP</button>
-                        </div>
-                        
-                        <div style="font-size:8px; margin:10px 0 5px 0; text-align:center;">DIFFICULTY:</div>
-                        <div style="display:flex; justify-content:center; gap:5px;">
-                            <button onclick="Game.selectDiff('easy')" class="diff-btn" id="btn-d-easy" style="flex:1; padding:8px 5px; font-size:8px;">EASY</button>
-                            <button onclick="Game.selectDiff('medium')" class="diff-btn" id="btn-d-medium" style="flex:1; padding:8px 5px; font-size:8px;">MED</button>
-                            <button onclick="Game.selectDiff('hard')" class="diff-btn" id="btn-d-hard" style="flex:1; padding:8px 5px; font-size:8px;">HARD</button>
+                    
+                    <div id="concept-selector" style="margin-top:10px; border-top:1px solid #ccc; padding-top:10px;">
+                        <div style="font-size:10px; font-weight:bold; margin:10px 0; text-align:center; color:#2f3542;">SELECT DIFFICULTY:</div>
+                        <div style="display:flex; justify-content:center; gap:10px;">
+                            <button onclick="Game.selectDiff('easy')" class="diff-btn" id="btn-d-easy" style="flex:1; padding:15px 5px; font-size:10px; font-weight:bold;">EASY</button>
+                            <button onclick="Game.selectDiff('medium')" class="diff-btn" id="btn-d-medium" style="flex:1; padding:15px 5px; font-size:10px; font-weight:bold;">MED</button>
+                            <button onclick="Game.selectDiff('hard')" class="diff-btn" id="btn-d-hard" style="flex:1; padding:15px 5px; font-size:10px; font-weight:bold;">HARD</button>
                         </div>
                     </div>
                     
-                    <button id="stage-start-btn" onclick="Game.triggerTeamSelection()" style="display:none; width:100%; margin-top:15px; padding:15px; background:var(--primary); color:white; font-size:12px; font-weight:bold; border:none; border-radius:5px;">START PERFORMANCE</button>
+                    <button id="stage-start-btn" onclick="Game.triggerTeamSelection()" style="display:none; width:100%; margin-top:20px; padding:15px; background:var(--primary); color:white; font-size:14px; font-weight:bold; border:none; border-radius:8px; cursor:pointer;">START STAGE</button>
                 </div>
                 <button id="room-action-btn">ACTION</button>
                 <button id="room-cancel-btn" onclick="HubMap.cancelRoom()" style="background:#eee">CANCEL</button>
@@ -357,6 +365,7 @@
 <script src="js/data.js"></script>
 <script src="js/audio.js"></script>
 <script src="js/map.js"></script>
+<script src="js/lang.js"></script>
 <script src="js/event.js"></script> <script src="js/minigame.js"></script>
 <script src="js/stage.js"></script>
 <script src="js/game.js"></script>
