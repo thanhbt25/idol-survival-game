@@ -203,13 +203,17 @@ var SongDraft = {
             
             // Nếu tới lượt người chơi và bài này chưa ai chọn thì cho phép click
             if (!song.pickedBy) {
+                let currentTeam = SongDraft.pickOrder[SongDraft.currentIndex];
+                let isPlayerTurn = currentTeam && currentTeam.members && currentTeam.members.some(m => m.id === 'p');
+
                 d.onclick = () => {
                     let currentTeam = SongDraft.pickOrder[SongDraft.currentIndex];
                     if (currentTeam.members.some(m => m.id === 'p')) {
                         SongDraft.pickSong(idx);
                     }
                 };
-                if(SongDraft.pickOrder[SongDraft.currentIndex].members.some(m=>m.id==='p')){
+
+                if(isPlayerTurn){
                     d.style.cursor = 'pointer';
                     d.style.borderColor = '#ffeaa7';
                 }
@@ -945,23 +949,9 @@ toggleSettings: () => {
     },
 
     showTeamReveal: () => {
-        showScreen('team-reveal-screen');
-        
-        // Xóa sạch các thuộc tính display ép cứng trước đó (nếu có)
-        const screenEl = document.getElementById('team-reveal-screen');
-        if (screenEl) screenEl.style.display = '';
-
-        const list = document.getElementById('team-reveal-list');
-        if (!list) return;
-        list.innerHTML = '';
-        
-        const btnNext = document.getElementById('btn-reveal-next');
-        if (btnNext) {
-            btnNext.style.display = 'none';
-            btnNext.onclick = () => { Game.finalizeDay(); }; 
-        }
-
-        // FAILSAFE: Nếu bỏ qua bốc thăm và chơi thẳng, tự sinh mảng Team ảo để không Crash
+        // ==========================================
+        // 1. TÍNH TOÁN ĐIỂM SỐ (Dùng chung)
+        // ==========================================
         if (!SpecialEvent.teams || SpecialEvent.teams.length === 0) {
             SpecialEvent.teams = Array.from({length: 5}, (_, i) => ({
                 leader: i === 0 ? Player : (NPCs[i] || {name: 'Bot', skin:'#ccc', hair:'#000', stats:{dance:50,vocal:50,rap:50}}),
@@ -998,39 +988,142 @@ toggleSettings: () => {
             });
         });
 
-        SpecialEvent.teams.forEach((t, i) => {
-            let isMyTeam = t.members && t.members.some(m => m.id === 'p');
-            let div = document.createElement('div');
-            
-            div.style.cssText = `background:#fff; border:3px solid ${isMyTeam?'#ff6b81':'#2f3542'}; border-radius:8px; padding:10px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; z-index:1; margin-bottom: 12px; width: 100%; box-sizing: border-box;`;
-            let leaderName = (t.leader && t.leader.name) ? t.leader.name.split(' ')[0] : 'Bot';
+        const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
+        
+        // Nhận diện Mobile (màn hình <= 1024px)
+        const isMobile = window.innerWidth <= 1024;
 
-            const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
-            div.innerHTML = `
-                <div id="ts-fill-${i}" style="position:absolute; top:0; left:0; height:100%; width:0%; background:${isMyTeam?'#ffeaa7':'#dfe6e9'}; z-index:-1; transition:width 1.5s ease-out;"></div>
-                <div style="display:flex; align-items:center; gap:10px; position:relative; z-index:2;">
-                    <div style="font-size:20px; font-weight:bold; color:${i===0?'#f1c40f':'#2f3542'};">#${i+1}</div>
-                    <div style="font-size:12px; font-weight:bold; color:#2f3542; text-align:left;">${isVi ? "ĐỘI" : "TEAM"} ${leaderName}<br><span style="font-size:8px; color:#ff7675;">${isVi ? "THƯỞNG" : "BONUS"}: +${formatNum(t.rankBonus)}</span></div>
-                </div>
-                <div id="ts-val-${i}" style="font-size:18px; font-weight:bold; color:#2f3542; position:relative; z-index:2;">0</div>
+        if (isMobile) {
+            // ==========================================
+            // 2A. GIAO DIỆN ĐỘC LẬP CHO MOBILE
+            // ==========================================
+            // Xóa overlay cũ nếu lỡ chạy lại 2 lần
+            let oldMobileScreen = document.getElementById('mobile-team-reveal-overlay');
+            if(oldMobileScreen) oldMobileScreen.remove();
+
+            // Tạo một khung màn hình cực mạnh, đè lên mọi thứ (z-index: 99999)
+            let mobileOverlay = document.createElement('div');
+            mobileOverlay.id = 'mobile-team-reveal-overlay';
+            mobileOverlay.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+                background: #2f3542; z-index: 99999; overflow-y: auto;
+                -webkit-overflow-scrolling: touch; padding-bottom: 50px;
+                display: flex; flex-direction: column; align-items: center; font-family: inherit;
             `;
-            list.appendChild(div);
 
-            setTimeout(() => {
-                let maxPossible = targetMaxScore * 5 + 20000; 
-                let percent = Math.min(100, (t.finalDailyScore / maxPossible) * 100);
-                let fillEl = document.getElementById(`ts-fill-${i}`);
-                if (fillEl) fillEl.style.width = `${percent}%`;
+            let title = document.createElement('h1');
+            title.style.cssText = "color: #feca57; text-shadow: 0 0 10px #e67e22; margin: 40px 0 20px; text-align: center; font-size: 24px;";
+            title.innerText = isVi ? "KẾT QUẢ VÒNG BẢNG" : "TEAM BATTLE RESULTS";
+            mobileOverlay.appendChild(title);
+
+            let mobileList = document.createElement('div');
+            mobileList.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 92%; max-width: 450px;";
+            mobileOverlay.appendChild(mobileList);
+
+            SpecialEvent.teams.forEach((t, i) => {
+                let isMyTeam = t.members && t.members.some(m => m.id === 'p');
+                let div = document.createElement('div');
+                let rankBg = i === 0 ? '#f1c40f' : (i === 1 ? '#bdc3c7' : (i === 2 ? '#cd6133' : '#576574'));
+                let cardBg = isMyTeam ? '#ffeaa7' : '#ffffff';
+                let cardBorder = isMyTeam ? '#e17055' : '#2f3542';
+                let leaderName = (t.leader && t.leader.name) ? t.leader.name.split(' ')[0] : 'Bot';
+
+                div.style.cssText = `
+                    background: ${cardBg}; border: 3px solid ${cardBorder}; border-radius: 10px;
+                    padding: 12px; display: flex; align-items: center; justify-content: space-between;
+                    box-shadow: 0 4px 0 ${cardBorder}; width: 100%; box-sizing: border-box;
+                    transform: translateY(20px); opacity: 0; transition: all 0.4s ease;
+                `;
                 
-                let valEl = document.getElementById(`ts-val-${i}`);
-                if (valEl) {
-                    if (typeof Game.animateValue === 'function') Game.animateValue(`ts-val-${i}`, 0, t.finalDailyScore, 1500);
-                    else valEl.innerText = formatNum(t.finalDailyScore);
-                }
-            }, i * 300 + 100);
-        });
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: ${rankBg}; color: ${i===0?'#222':'#fff'}; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; border: 2px solid #2f3542; flex-shrink: 0;">${i + 1}</div>
+                        <div>
+                            <div style="font-size: 14px; font-weight: 900; color: #2f3542;">${isVi ? "ĐỘI" : "TEAM"} ${leaderName}</div>
+                            <div style="font-size: 11px; font-weight: bold; color: #d63031; margin-top:2px;">${isVi ? "THƯỞNG" : "BONUS"}: +${formatNum(t.rankBonus)}</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; flex-shrink: 0;">
+                        <div style="font-size: 9px; color: #7f8c8d; font-weight: bold; margin-bottom: 2px;">${isVi ? "TỔNG ĐIỂM" : "TOTAL"}</div>
+                        <div id="m-ts-val-${i}" style="font-size: 18px; font-weight: 900; color: #00b894;">0</div>
+                    </div>
+                `;
+                mobileList.appendChild(div);
 
-        setTimeout(() => { if (btnNext) btnNext.style.display = 'block'; }, SpecialEvent.teams.length * 300 + 1500);
+                setTimeout(() => {
+                    div.style.transform = 'translateY(0)'; div.style.opacity = '1';
+                    let valEl = document.getElementById(`m-ts-val-${i}`);
+                    if (valEl) {
+                        if (typeof Game.animateValue === 'function') Game.animateValue(`m-ts-val-${i}`, 0, t.finalDailyScore, 1000);
+                        else valEl.innerText = formatNum(t.finalDailyScore);
+                    }
+                }, i * 200 + 100);
+            });
+
+            let btnNextMobile = document.createElement('button');
+            btnNextMobile.innerText = isVi ? "TIẾP TỤC" : "CONTINUE";
+            btnNextMobile.style.cssText = "margin-top: 60px; display: none; background: #00b894; color: #fff; padding: 15px; width: 80%; max-width: 300px; font-weight: 900; font-size: 16px; border: 3px solid #fff; border-radius: 30px; box-shadow: 0 5px 0 #008c72; cursor: pointer;";
+            btnNextMobile.onclick = () => {
+                mobileOverlay.remove(); // Tự sát lớp layer này khi bấm tiếp tục
+                Game.finalizeDay();
+            };
+            mobileOverlay.appendChild(btnNextMobile);
+
+            // QUAN TRỌNG NHẤT: Gắn thẳng nó vào body để vượt mặt mọi thẻ div lỗi
+            document.body.appendChild(mobileOverlay); 
+
+            setTimeout(() => { btnNextMobile.style.display = 'block'; }, SpecialEvent.teams.length * 200 + 1200);
+
+        } else {
+            // ==========================================
+            // 2B. GIAO DIỆN CŨ CHO PC
+            // ==========================================
+            showScreen('team-reveal-screen');
+            const screenEl = document.getElementById('team-reveal-screen');
+            if (screenEl) screenEl.style.display = 'block';
+
+            const list = document.getElementById('final-team-score-list');
+            if (!list) return;
+            list.innerHTML = '';
+            
+            const btnNext = document.getElementById('btn-reveal-next');
+            if (btnNext) {
+                btnNext.style.display = 'none';
+                btnNext.onclick = () => { Game.finalizeDay(); }; 
+            }
+
+            SpecialEvent.teams.forEach((t, i) => {
+                let isMyTeam = t.members && t.members.some(m => m.id === 'p');
+                let div = document.createElement('div');
+                div.style.cssText = `background:#fff; border:3px solid ${isMyTeam?'#ff6b81':'#2f3542'}; border-radius:8px; padding:10px; position:relative; overflow:hidden; display:flex; justify-content:space-between; align-items:center; z-index:1; margin-bottom: 12px; width: 100%; box-sizing: border-box;`;
+                let leaderName = (t.leader && t.leader.name) ? t.leader.name.split(' ')[0] : 'Bot';
+
+                div.innerHTML = `
+                    <div id="ts-fill-${i}" style="position:absolute; top:0; left:0; height:100%; width:0%; background:${isMyTeam?'#ffeaa7':'#dfe6e9'}; z-index:-1; transition:width 1.5s ease-out;"></div>
+                    <div style="display:flex; align-items:center; gap:10px; position:relative; z-index:2;">
+                        <div style="font-size:20px; font-weight:bold; color:${i===0?'#f1c40f':'#2f3542'};">#${i+1}</div>
+                        <div style="font-size:12px; font-weight:bold; color:#2f3542; text-align:left;">${isVi ? "ĐỘI" : "TEAM"} ${leaderName}<br><span style="font-size:8px; color:#ff7675;">${isVi ? "THƯỞNG" : "BONUS"}: +${formatNum(t.rankBonus)}</span></div>
+                    </div>
+                    <div id="ts-val-${i}" style="font-size:18px; font-weight:bold; color:#2f3542; position:relative; z-index:2;">0</div>
+                `;
+                list.appendChild(div);
+
+                setTimeout(() => {
+                    let maxPossible = targetMaxScore * 5 + 20000; 
+                    let percent = Math.min(100, (t.finalDailyScore / maxPossible) * 100);
+                    let fillEl = document.getElementById(`ts-fill-${i}`);
+                    if (fillEl) fillEl.style.width = `${percent}%`;
+                    
+                    let valEl = document.getElementById(`ts-val-${i}`);
+                    if (valEl) {
+                        if (typeof Game.animateValue === 'function') Game.animateValue(`ts-val-${i}`, 0, t.finalDailyScore, 1500);
+                        else valEl.innerText = formatNum(t.finalDailyScore);
+                    }
+                }, i * 300 + 100);
+            });
+
+            setTimeout(() => { if (btnNext) btnNext.style.display = 'block'; }, SpecialEvent.teams.length * 300 + 1500);
+        }
     },
 
     renderRank: () => {

@@ -447,32 +447,82 @@ var Stage = {
         // --- 3. RENDER UI ---
         const contentDiv = document.getElementById('stage-detail-content');
         const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
+        
         contentDiv.innerHTML = `
-            <div class="stage-res-layout" style="display:flex; flex-direction:column; background:#fff; padding:20px; border-radius:10px; width:90%; max-width:400px; border:4px solid #2f3542;">
-                <h2 style="text-align:center; color:#2f3542; margin-top:0;">${isVi ? "KẾT QUẢ SÂN KHẤU" : "STAGE RESULTS"}</h2>
+            <style>
+                /* Cấu trúc mặc định (PC và Mobile dọc) */
+                .stage-res-box {
+                    background: #fff; border: 4px solid #2f3542; border-radius: 10px;
+                    padding: 20px; width: 90%; max-width: 400px;
+                    display: flex; flex-direction: column;
+                    max-height: 95vh; overflow-y: auto;
+                }
+                .stage-res-content {
+                    display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;
+                }
+                .stage-res-team-list {
+                    background: #f1f2f6; padding: 10px; border-radius: 8px;
+                    max-height: 100px; overflow-y: auto;
+                }
+                .left-stat-box {
+                    display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; padding:10px; border-radius:8px; margin-bottom:15px;
+                }
+                .team-total-box {
+                    display:flex; justify-content:space-between; font-size:14px; font-weight:bold; color:#2f3542; border-top:2px solid #2f3542; padding-top:10px;
+                }
                 
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; padding:10px; border-radius:8px; margin-bottom:15px;">
-                    <div>
-                        <div style="font-size:10px; color:#aaa;">${isVi ? "BẠN" : "YOU"} (${concept.toUpperCase()})</div>
-                        <div style="font-size:24px; font-weight:bold; color:${gradeColor};">${grade}</div>
-                        <div style="font-size:10px;">ACC: ${accuracy.toFixed(1)}%</div>
+                /* Responsive cho Mobile nằm ngang (Landscape) */
+                @media (max-width: 1024px) and (max-height: 500px) and (orientation: landscape) {
+                    .stage-res-box { max-width: 600px; padding: 12px 15px; }
+                    .stage-res-title { margin-bottom: 8px !important; font-size: 16px; }
+                    .stage-res-content { flex-direction: row; gap: 15px; margin-bottom: 10px; }
+                    
+                    /* Đổi justify-content thành flex-start để đẩy các thành phần lên trên cùng */
+                    .stage-res-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; } 
+                    
+                    .left-stat-box { margin-bottom: 10px; }
+                    .stage-res-team-list { max-height: 120px; flex-grow: 1; margin-bottom: 0; }
+                    .stage-res-btn { padding: 10px !important; font-size: 14px; }
+                    .team-total-box { margin-top: 10px; } 
+                }
+            </style>
+            
+            <div class="stage-res-box">
+                <h2 class="stage-res-title" style="text-align:center; color:#2f3542; margin-top:0; margin-bottom:15px;">
+                    ${isVi ? "KẾT QUẢ SÂN KHẤU" : "STAGE RESULTS"}
+                </h2>
+                
+                <div class="stage-res-content">
+                    <div class="stage-res-col">
+                        <div class="left-stat-box">
+                            <div>
+                                <div style="font-size:10px; color:#aaa;">${isVi ? "BẠN" : "YOU"} (${concept.toUpperCase()})</div>
+                                <div style="font-size:24px; font-weight:bold; color:${gradeColor}; line-height: 1.1;">${grade}</div>
+                                <div style="font-size:10px;">ACC: ${accuracy.toFixed(1)}%</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-size:10px; color:#aaa;">${isVi ? "ĐIỂM CÁ NHÂN" : "PLAYER SCORE"}</div>
+                                <div style="font-size:20px; font-weight:bold; color:#ff6b81;">${formatNum(finalScore)}</div>
+                            </div>
+                        </div>
+
+                        <div class="team-total-box">
+                            <span>${isVi ? "TỔNG ĐIỂM ĐỘI:" : "TEAM TOTAL:"}</span> 
+                            <span style="color:#00b894; font-size: 18px;">${formatNum(myTeamTotal)}</span>
+                        </div>
                     </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:10px; color:#aaa;">${isVi ? "ĐIỂM CÁ NHÂN" : "PLAYER SCORE"}</div>
-                        <div style="font-size:20px; font-weight:bold; color:#ff6b81;">${formatNum(finalScore)}</div>
+
+                    <div class="stage-res-col">
+                        <div style="font-size:12px; font-weight:bold; color:#2f3542; margin-bottom:5px; text-align: center;">${isVi ? "ĐỒNG ĐỘI" : "TEAMMATES"}</div>
+                        <div class="stage-res-team-list">
+                            ${teamHtml || `<div style="font-size:10px; color:#aaa; text-align:center; margin-top: 10px;">${isVi ? "KHÔNG CÓ ĐỒNG ĐỘI (SOLO)" : "NO TEAMMATES (SOLO)"}</div>`}
+                        </div>
                     </div>
                 </div>
 
-                <div style="font-size:12px; font-weight:bold; color:#2f3542; margin-bottom:5px;">${isVi ? "ĐỒNG ĐỘI" : "TEAMMATES"}</div>
-                <div style="background:#f1f2f6; padding:10px; border-radius:8px; margin-bottom:15px; max-height:100px; overflow-y:auto;">
-                    ${teamHtml || `<div style="font-size:10px; color:#aaa; text-align:center;">${isVi ? "KHÔNG CÓ ĐỒNG ĐỘI (SOLO)" : "NO TEAMMATES (SOLO)"}</div>`}
-                </div>
-
-                <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:bold; color:#2f3542; border-top:2px solid #2f3542; padding-top:10px; margin-bottom:20px;">
-                    <span>${isVi ? "TỔNG ĐIỂM ĐỘI:" : "TEAM TOTAL:"}</span> <span style="color:#00b894;">${formatNum(myTeamTotal)}</span>
-                </div>
-
-                <button onclick="Game.finishStageDay()" style="padding:15px; background:#2f3542; color:#fff; font-family:inherit; font-weight:bold; border-radius:30px; cursor:pointer;">${isVi ? "TIẾP TỤC TỚI XẾP HẠNG" : "CONTINUE TO RANKING"}</button>
+                <button class="stage-res-btn" onclick="Game.finishStageDay()" style="width:100%; padding:15px; background:#2f3542; color:#fff; font-family:inherit; font-weight:bold; border:none; border-radius:30px; cursor:pointer; text-transform:uppercase; margin-top: auto;">
+                    ${isVi ? "TIẾP TỤC TỚI XẾP HẠNG" : "CONTINUE TO RANKING"}
+                </button>
             </div>
         `;
     },

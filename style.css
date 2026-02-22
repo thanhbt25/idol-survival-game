@@ -241,9 +241,9 @@ button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2f3542; }
     border-color: #e67e22;
 }
 
-#team-reveal-list {
+#final-team-score-list {
     flex-grow: 1;
-    overflow-y: auto; /* Cho phÃ©p cuá»™n náº¿u báº£ng dÃ i */
+    overflow-y: auto;
     min-height: 200px;
 }
 
@@ -598,8 +598,8 @@ canvas {
     flex-direction: column !important;
 }
 
-/* Chá»‰ hiá»‡n khi mÃ n hÃ¬nh dá»c trÃªn mobile */
-@media screen and (max-height: 500px) and (orientation: landscape) {
+/* ===== MOBILE: MỘT PHIÊN BẢN DUY NHẤT - LAYOUT NGANG ===== */
+@media (max-width: 1024px) {
     #mobile-controls {
         display: none !important;  /* Máº·c Ä‘á»‹nh áº©n */
     }
@@ -1225,33 +1225,26 @@ canvas {
         font-size: 18px !important;    
         font-weight: bold !important;  
         color: #2f3542 !important;     
-        margin-bottom: 4px !important;       /* Chá»‰ giá»¯ láº¡i margin dÆ°á»›i Ä‘á»ƒ táº¡o khoáº£ng cÃ¡ch vá»›i tÃªn */
+        margin-bottom: 4px !important;      
         text-shadow: 1px 1px 0px #fff; 
-        line-height: 1 !important;           /* GiÃºp cÄƒn giá»¯a theo chiá»u dá»c chuáº©n hÆ¡n */
+        line-height: 1 !important;           
     }
 
-    /* Thu nhá» nháº¹ tÃªn NPC Ä‘á»ƒ cÃ¢n báº±ng láº¡i layout */
     #ranking-list .rank-card div:nth-child(2) {
         font-size: 10px !important;
         margin-bottom: 2px !important;
     }
 
-    /* Äiá»ƒm sá»‘ (vÃ­ dá»¥: 9.3k) */
     #ranking-list .rank-card div:last-child {
         font-size: 11px !important;
         font-weight: bold !important;
-        color: #e67e22 !important; /* MÃ u cam Ä‘áº·c trÆ°ng cho Ä‘iá»ƒm sá»‘ */
+        color: #e67e22 !important;
     }
 
-    /* --- Cáº¤U HÃŒNH Láº I MÃ€N HÃŒNH TEAM SELECTION (DRAFT) --- */
-
-    /* 1. áº¨n luÃ´n tiÃªu Ä‘á» "TEAM SELECTION" vÃ¬ trong khung Ä‘Ã£ cÃ³ chá»¯ "TEAM DRAFT" rá»“i */
-    /* Viá»‡c nÃ y giÃºp tiáº¿t kiá»‡m khoáº£ng 30-40px chiá»u cao quÃ½ giÃ¡ */
     #draft-title {
         display: none !important; 
     }
 
-    /* 2. Má»Ÿ rá»™ng khung hÃ¬nh áº£nh lÃªn tá»‘i Ä‘a (85% mÃ n hÃ¬nh) */
     #draft-visual {
         width: 98% !important;        /* Má»Ÿ rá»™ng bá» ngang */
         height: 85vh !important;      /* Chiáº¿m 85% chiá»u cao mÃ n hÃ¬nh */
@@ -1425,23 +1418,35 @@ canvas {
 
     /* Khung chá»©a ná»™i dung káº¿t quáº£ */
     #stage-detail-content {
-        width: 85vw !important;
-        height: 75vh !important;
-        margin-top: 30px !important; /* Chá»«a chá»— cho tiÃªu Ä‘á» */
+        width: 95vw !important;
+        max-width: 420px !important;
+        height: auto !important;
+        max-height: 85vh !important;
+        margin-top: 20px !important;
         background: #fff !important;
         border: 4px solid #fff !important;
         border-radius: 12px !important;
         box-shadow: 0 0 20px rgba(255,255,255,0.2) !important;
-        padding: 0 !important;
-        overflow: hidden !important;
+        padding: 15px !important;
+        overflow-y: auto !important;
     }
 
     /* --- LAYOUT CHIA ÄÃ”I (TrÃ¡i - Pháº£i) --- */
+    /* Stage result - giữ column, tránh ép row gây chữ đứng dọc */
+    #stage-detail-content .stage-res-layout {
+        flex-direction: column !important;
+        min-width: min(95vw, 380px) !important;
+        max-width: 95vw !important;
+    }
+    #stage-detail-content .stage-res-layout h2,
+    #stage-detail-content .stage-res-layout button {
+        white-space: nowrap !important;
+    }
+
     .stage-res-layout {
         display: flex !important;
         width: 100%;
         height: 100%;
-        flex-direction: row !important; 
     }
 
     /* Cá»™t TrÃ¡i: Háº¡ng (S, A, B) & Äá»™ khÃ³ */
@@ -1796,15 +1801,6 @@ body.lang-vi #day-summary-screen button { font-size: 16px !important; padding: 1
 body.lang-vi #elimination-msg { font-size: 14px !important; line-height: 1.5; }
 body.lang-vi #interaction-modal { max-width: 760px; }
 
-/* ===== MOBILE: Hide avatar in result/ranking cards (fixes broken display) ===== */
-@media (max-width: 1024px) {
-    #ranking-list .rank-card .rank-avatar,
-    #team-reveal-list .rank-card .rank-avatar {
-        display: none !important;
-    }
-}
-
-/* ===== MOBILE-FIRST STABILITY PATCH ===== */
 @media (max-width: 1024px) {
     #game-container {
         width: 100vw;
@@ -1872,13 +1868,59 @@ body.lang-vi #interaction-modal { max-width: 760px; }
     }
 
     #ranking-list {
-        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
         gap: 8px !important;
         padding: 6px !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    #ranking-list .rank-card {
+        flex: 0 0 auto !important;
+        min-width: 110px !important;
+    }
+
+    #team-reveal-screen {
+        overflow-x: hidden !important; /* Tránh vuốt ngang bị trượt */
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #team-reveal-screen .team-reveal-wrap {
+        justify-content: flex-start !important;
+        height: auto !important;
+        min-height: 100dvh !important;
+        padding: 30px 0 50px !important;
+        box-sizing: border-box !important;
+    }
+
+    #final-team-score-list {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 95% !important;
+        max-width: 600px !important;
+        margin: 0 auto !important; /* Căn giữa */
+        gap: 0px !important; /* Margin-bottom đã set trong JS nên gap để 0 */
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Đảm bảo các dòng hiển thị điểm luôn chiếm đủ 100% thay vì bị bóp nhỏ */
+    #final-team-score-list > div {
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+    }
+
+    #final-team-score-list .rank-card .rank-avatar {
+        display: block !important; 
+        max-width: 100%;
+        height: auto;
     }
 
     .rank-card {
-        width: 100% !important;
+        width: auto !important;
         max-width: none !important;
         min-height: 155px !important;
         height: auto !important;
@@ -1891,45 +1933,66 @@ body.lang-vi #interaction-modal { max-width: 760px; }
         max-height: 74dvh !important;
     }
 
+    #result-screen .result-box {
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #team-reveal-screen {
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #team-reveal-screen .team-reveal-wrap {
+        justify-content: flex-start !important;
+        height: auto !important;
+        min-height: 100dvh !important;
+        padding: 16px 0 20px !important;
+    }
+
     .score-box {
         width: min(92vw, 420px);
         padding: 14px;
     }
 
+    /* Bảng kết quả: layout ngang (trái-phải) */
     .res-layout {
-        flex-direction: column !important;
+        flex-direction: row !important;
         width: 96% !important;
         height: auto !important;
         max-height: 84dvh !important;
-        gap: 10px !important;
+        gap: 12px !important;
         overflow: auto;
         padding-bottom: 8px;
     }
 
     .res-table,
     .res-summary {
-        width: 100% !important;
-        max-width: 100% !important;
+        width: auto !important;
+        flex: 1 1 auto !important;
+        max-width: none !important;
     }
 
     #stage-ui {
-        flex-direction: column !important;
+        flex-direction: row !important;
     }
 
     .side-panel {
-        width: 100% !important;
-        min-height: 120px;
-        border-right: none !important;
-        border-bottom: 3px solid #2f3542;
-        order: 2;
+        width: 180px !important;
+        min-height: auto !important;
+        border-right: 3px solid #2f3542 !important;
+        border-bottom: none !important;
+        order: 1;
     }
 
     #main-stage {
-        width: 100% !important;
-        min-height: 45dvh;
+        flex: 1 !important;
+        min-height: 45dvh !important;
         border-left: none !important;
         border-right: none !important;
-        order: 1;
+        order: 2;
     }
 
     #title-screen button {
@@ -1937,42 +2000,30 @@ body.lang-vi #interaction-modal { max-width: 760px; }
         padding: 14px 28px !important;
         margin-top: 26px !important;
     }
-}
 
-@media (max-width: 640px) {
-    #npc-list-grid,
+    /* Gộp từ màn nhỏ + landscape - layout ngang */
+    #npc-list-grid {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)) !important;
+    }
     #rel-list-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+        -webkit-overflow-scrolling: touch;
     }
-
-    #dialogue-text {
-        font-size: 16px !important;
-        line-height: 1.8 !important;
+    #rel-list-grid .rel-card {
+        flex: 0 0 auto !important;
+        min-width: 100px !important;
     }
-
-    .dialogue-btn {
-        font-size: 13px !important;
-        padding: 12px 8px !important;
-    }
-
-    #game-toast {
-        width: min(92vw, 420px);
-        font-size: 12px !important;
-        line-height: 1.5 !important;
-    }
-}
-
-@media (max-height: 500px) and (orientation: landscape) {
+    #dialogue-text { font-size: 15px !important; line-height: 1.6 !important; }
+    .dialogue-btn, #dialogue-options button { font-size: 12px !important; padding: 10px 6px !important; }
+    #game-toast { width: min(92vw, 420px); font-size: 12px !important; }
     #comp-canvas-wrapper,
     #minigame-canvas-container,
     #draft-visual {
-        height: min(76dvh, 420px) !important;
-    }
-
-    #hub-stats-display {
-        font-size: 9px !important;
-        padding: 6px 8px !important;
+        height: min(76dvh, 540px) !important;
     }
 }
-/* ===== END MOBILE-FIRST STABILITY PATCH ===== */
 

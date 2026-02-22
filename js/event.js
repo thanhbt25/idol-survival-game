@@ -1,4 +1,4 @@
-function drawFace(ctx, x, y, char, scale = 1) {
+﻿function drawFace(ctx, x, y, char, scale = 1) {
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(scale, scale);
@@ -31,151 +31,200 @@ var SpecialEvent = {
             const r = container.getBoundingClientRect();
             canvas.width = r.width;
             canvas.height = r.height;
-            if (typeof SpecialEvent.redrawDraft === 'function') SpecialEvent.redrawDraft();
+            if (typeof SpecialEvent.initLayout === 'function') SpecialEvent.initLayout();
         };
         window.addEventListener('resize', SpecialEvent.resizeDraftCanvas);
         window.addEventListener('orientationchange', SpecialEvent.resizeDraftCanvas);
 
-        const isMobile = (canvas.width < 1024) || (navigator.maxTouchPoints > 0);
-        let viewDetailTeamIndex = -1;
-
-        canvas.onclick = (e) => {
-            if (!isMobile) return; 
-            const cRect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / cRect.width;
-            const scaleY = canvas.height / cRect.height;
-            const clickX = (e.clientX - cRect.left) * scaleX;
-            const clickY = (e.clientY - cRect.top) * scaleY;
-
-            SpecialEvent.teams.forEach((t, index) => {
-                if (Math.hypot(clickX - t.x, clickY - t.y) < 50) {
-                    viewDetailTeamIndex = (viewDetailTeamIndex === index) ? -1 : index;
-                }
-            });
-        };
-
+        let isMobile = canvas.width < 768 || canvas.height > canvas.width;
         let survivors = [...NPCs, {...Player, id:'p'}].filter(n => !n.eliminated).sort((a,b) => b.totalVote - a.totalVote);
         let numTeams = 5;
 
         let leaders = survivors.slice(0, numTeams);
         let pool = survivors.slice(numTeams);
 
-        SpecialEvent.teams = leaders.map((l, index) => {
-            let tx = 0, ty = 90;
-            if (isMobile) {
-                tx = (canvas.width / numTeams) * index + (canvas.width / numTeams / 2);
-                ty = 100; 
-            } else {
-                tx = (canvas.width / numTeams) * index + (canvas.width / numTeams / 2);
-                ty = 90;
-            }
-            return { leader: l, members: [l], x: tx, y: ty, eventScore: 0, history: [0, 0, 0] };
-        });
+        // Khởi tạo layout cho các thẻ (Cards)
+        SpecialEvent.initLayout = () => {
+            isMobile = canvas.width < 768 || canvas.height > canvas.width;
+            SpecialEvent.teams.forEach((t, index) => {
+                if (isMobile) {
+                    let col = index % 2;
+                    let row = Math.floor(index / 2);
+                    t.x = (index === 4) ? canvas.width / 2 : (canvas.width / 4) * (col * 2 + 1);
+                    t.y = 110 + row * 120;
+                    t.scale = 3.5;
+                } else {
+                    t.x = (canvas.width / numTeams) * index + (canvas.width / numTeams / 2);
+                    t.y = canvas.height * 0.45;
+                    t.scale = 4.5;
+                }
+            });
+        };
 
-        let pickingTeam = 0; let animId;
+        SpecialEvent.teams = leaders.map((l) => {
+            return { leader: l, members: [l], x: 0, y: 0, scale: 3, eventScore: 0, history: [0, 0, 0], flash: 0, floatTextY: 0 };
+        });
+        
+        SpecialEvent.initLayout();
+
+        let pickingTeam = 0; 
+        let animId;
+        let isDrafting = true;
+        let lastPickTime = Date.now();
+        let totalMembersPerTeam = Math.ceil(survivors.length / numTeams);
+
+        // FIX LỖI: Đưa khai báo isVi và mainFont ra ngoài cùng để dùng được ở mọi nơi
+        const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
+        const mainFont = isVi ? "'VT323', monospace" : "'Press Start 2P', sans-serif";
 
         const drawDraft = () => {
-            for (let i = 0; i < canvas.width; i += 50) {
-                for (let j = 0; j < canvas.height; j += 50) {
-                    ctx.fillStyle = (i/50 + j/50) % 2 === 0 ? "#CD853F" : "#DEB887"; ctx.fillRect(i, j, 50, 50);
-                }
-            }
-            let gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 50, canvas.width/2, canvas.height/2, canvas.width/1.2);
-            gradient.addColorStop(0, "rgba(255, 255, 255, 0.2)"); gradient.addColorStop(1, "rgba(0, 0, 0, 0.2)");
-            ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.textAlign = "center"; ctx.lineWidth = 6; ctx.strokeStyle = "#000"; ctx.fillStyle = "#fff"; 
-            ctx.font = "bold 24px 'Press Start 2P'";
-            const isVi = (typeof Lang !== 'undefined' && Lang.current === 'vi');
-            const draftTitle = isVi ? "CHIA ĐỘI" : "TEAM DRAFT";
-            ctx.strokeText(draftTitle, canvas.width/2, 40); ctx.fillText(draftTitle, canvas.width/2, 40);
+            // 1. Vẽ Background (Sàn nhà màu Vàng tươi sáng, lưới Cam nhạt)
+            ctx.fillStyle = "#ffeaa7"; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "rgba(225, 112, 85, 0.2)"; 
+            ctx.lineWidth = 2;
+            for (let i = 0; i < canvas.width; i += 40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); }
+            for (let j = 0; j < canvas.height; j += 40) { ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke(); }
 
+            // 2. Tiêu đề (Đổi viền đen, chữ đỏ cam cho hợp với nền sáng)
+            ctx.textAlign = "center"; ctx.lineWidth = 6; ctx.strokeStyle = "#2d3436"; ctx.fillStyle = "#ff7675";
+            let titleSize = isMobile ? (isVi ? "26px" : "18px") : (isVi ? "38px" : "28px");
+            ctx.font = `bold ${titleSize} ${mainFont}`;
+            
+            const draftTitle = isVi ? "BỐC THĂM ĐỘI HÌNH" : "TEAM DRAFT";
+            ctx.strokeText(draftTitle, canvas.width/2, isMobile ? 40 : 60); 
+            ctx.fillText(draftTitle, canvas.width/2, isMobile ? 40 : 60);
+
+            // 3. Vẽ các khu vực Đội (Team Cards)
             SpecialEvent.teams.forEach((t, i) => {
-                let currentY = t.y; 
                 let isLeaderPlayer = (t.leader.id === 'p');
                 let amIInThisTeam = t.members.some(m => m.id === 'p');
 
-                if (amIInThisTeam) {
-                    ctx.save(); ctx.shadowColor = "#00ffea"; ctx.shadowBlur = 40;
-                    ctx.beginPath(); ctx.arc(t.x, currentY, 38, 0, Math.PI*2); 
-                    ctx.fillStyle = "rgba(0, 255, 234, 0.4)"; ctx.fill(); 
-                    ctx.lineWidth = 3; ctx.strokeStyle = "#fff"; ctx.stroke(); ctx.restore();
-                } else if (isLeaderPlayer) {
-                    ctx.save(); ctx.shadowColor = "#ff0000"; ctx.shadowBlur = 30;
-                    ctx.beginPath(); ctx.arc(t.x, currentY, 35, 0, Math.PI*2); ctx.fillStyle = "rgba(255, 255, 0, 0.6)"; ctx.fill(); ctx.restore();
-                }
+                if (t.flash > 0) t.flash -= 0.05;
+                if (t.flash < 0) t.flash = 0;
 
-                drawFace(ctx, t.x, currentY, t.leader, 4.5); 
+                ctx.save();
+                ctx.translate(t.x, t.y);
                 
-                ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.strokeStyle = "#000";
-                ctx.fillStyle = "#FFD700"; ctx.font = "bold 10px 'Press Start 2P'"; 
-                ctx.strokeText(`TEAM ${i+1}`, t.x, currentY - 35); ctx.fillText(`TEAM ${i+1}`, t.x, currentY - 35);
+                if (amIInThisTeam) {
+                    ctx.shadowColor = "#00b894"; ctx.shadowBlur = 20; // Đổi bóng sang xanh lá cho hợp nền vàng
+                } else if (t.flash > 0) {
+                    ctx.shadowColor = "#ffdd59"; ctx.shadowBlur = 30 * t.flash;
+                }
+                
+                // Nền thẻ: Hơi xám trong suốt để nổi bật trên nền vàng sáng
+                ctx.fillStyle = (amIInThisTeam) ? "rgba(0, 184, 148, 0.8)" : "rgba(45, 52, 54, 0.85)";
+                if (t.flash > 0) ctx.fillStyle = `rgba(255, 221, 89, ${0.4 + t.flash * 0.6})`;
+                ctx.beginPath(); ctx.roundRect(-50, -50, 100, 100, 10); ctx.fill();
+                ctx.lineWidth = amIInThisTeam ? 3 : 2;
+                ctx.strokeStyle = amIInThisTeam ? "#55efc4" : "#636e72";
+                ctx.stroke();
+                ctx.restore();
+
+                drawFace(ctx, t.x, t.y - 10, t.leader, t.scale);
+
+                ctx.textAlign = "center"; ctx.lineWidth = 3; ctx.strokeStyle = "#000";
+                ctx.fillStyle = amIInThisTeam ? "#55efc4" : "#fff"; 
+                let teamFontSize = isMobile ? (isVi ? "14px" : "8px") : (isVi ? "16px" : "10px");
+                ctx.font = `bold ${teamFontSize} ${mainFont}`; 
+                ctx.strokeText(`TEAM ${i+1}`, t.x, t.y - 40); ctx.fillText(`TEAM ${i+1}`, t.x, t.y - 40);
                 
                 let lName = `★ ${t.leader.name.split(' ')[0]}`;
-                ctx.fillStyle = isLeaderPlayer ? "#ff4757" : (amIInThisTeam ? "#00ffea" : "#fff");
-                ctx.font = "8px 'Press Start 2P'";
-                ctx.strokeText(lName, t.x, currentY + 30); ctx.fillText(lName, t.x, currentY + 30);
+                ctx.fillStyle = isLeaderPlayer ? "#ff4757" : "#feca57";
+                let leaderFontSize = isMobile ? (isVi ? "14px" : "8px") : (isVi ? "16px" : "9px");
+                ctx.font = `${leaderFontSize} ${mainFont}`;
+                ctx.strokeText(lName, t.x, t.y + 20); ctx.fillText(lName, t.x, t.y + 20);
 
-                t.members.forEach((m, mi) => {
-                    if (mi > 0) { 
-                        let spacing = 35; 
-                        let startY = currentY + 65
-                        let memberY = startY + ((mi - 1) * spacing);
-                        let isPlayer = (m.id === 'p');
+                let slotW = 6; let slotGap = 4;
+                let totalW = (totalMembersPerTeam * slotW) + ((totalMembersPerTeam - 1) * slotGap);
+                let startX = t.x - totalW / 2 + slotW / 2;
+                let startY = t.y + 35;
 
-                        ctx.fillStyle = "rgba(0,0,0,0.3)";
-                        ctx.beginPath(); ctx.ellipse(t.x, memberY + 12, 10, 5, 0, 0, Math.PI*2); ctx.fill();
-
-                        drawFace(ctx, t.x, memberY, m, 2.2);
-
-                        if (isPlayer) {
-                            ctx.strokeStyle = "#ff4757"; ctx.lineWidth = 2;
-                            ctx.beginPath(); ctx.moveTo(t.x, memberY - 15); ctx.lineTo(t.x - 5, memberY - 20); ctx.lineTo(t.x + 5, memberY - 20); ctx.closePath();
-                            ctx.fillStyle = "#ff4757"; ctx.fill(); ctx.stroke();
-                        }
+                for (let mIdx = 0; mIdx < totalMembersPerTeam; mIdx++) {
+                    ctx.beginPath();
+                    ctx.arc(startX + mIdx * (slotW + slotGap), startY, slotW/2, 0, Math.PI * 2);
+                    if (mIdx < t.members.length) {
+                        ctx.fillStyle = (t.members[mIdx].id === 'p') ? "#ff7675" : "#0be881"; 
+                        ctx.fill();
+                        ctx.strokeStyle = "#000"; ctx.lineWidth = 1; ctx.stroke();
+                    } else {
+                        ctx.fillStyle = "rgba(255,255,255,0.15)"; 
+                        ctx.fill();
+                        ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1; ctx.stroke();
                     }
-                });
+                }
+
+                if (t.flash > 0) {
+                    t.floatTextY -= 1;
+                    ctx.fillStyle = `rgba(11, 232, 129, ${t.flash})`;
+                    ctx.font = `bold ${isVi ? "20px" : "14px"} ${mainFont}`; 
+                    ctx.lineWidth = 3; ctx.strokeStyle = `rgba(0,0,0,${t.flash})`;
+                    ctx.strokeText("+1", t.x, t.y - 50 + t.floatTextY);
+                    ctx.fillText("+1", t.x, t.y - 50 + t.floatTextY);
+                }
             });
 
-            let poolHeight = 100; let poolY = canvas.height - poolHeight;
+            // 4. Vẽ khu vực Pool (Chờ bốc thăm) ở đáy màn hình
+            let poolHeight = isMobile ? 120 : 100; 
+            let poolY = canvas.height - poolHeight;
+            
+            ctx.fillStyle = "#2d3436"; ctx.fillRect(0, poolY, canvas.width, poolHeight);
+            ctx.fillStyle = "#0984e3"; ctx.fillRect(0, poolY, canvas.width, 4); // Đổi viền xanh cho mát
+            ctx.fillStyle = "#fff"; 
+            ctx.font = `${isVi ? "14px" : "8px"} ${mainFont}`; 
+            ctx.textAlign = "center";
+            ctx.fillText(isVi ? `ĐANG CHỜ BỐC THĂM: ${pool.length}` : `WAITING POOL: ${pool.length}`, canvas.width/2, poolY + 15);
+            
             if (pool.length > 0) {
-                ctx.fillStyle = "#5d4037"; ctx.fillRect(0, poolY, canvas.width, poolHeight);
-                ctx.fillStyle = "#ff6b81"; ctx.fillRect(0, poolY, canvas.width, 6);
-                ctx.fillStyle = "#fff"; ctx.font = "10px 'Press Start 2P'"; ctx.textAlign = "center";
-                ctx.fillText((isVi ? "ĐANG CHỜ..." : "WAITING..."), canvas.width/2, poolY - 15);
-
-                pool.forEach((p, i) => {
-                    if (!p.picked) {
-                        let itemsPerRow = isMobile ? 10 : 15; 
-                        let spacingX = canvas.width / itemsPerRow;
-                        let px = (spacingX / 2) + (i % itemsPerRow) * spacingX; 
-                        let py = poolY + 40 + Math.floor(i / itemsPerRow) * 40;
-                        drawFace(ctx, px, py, p, 2.0); 
-                    }
+                let itemsPerRow = isMobile ? 8 : 15; 
+                let spacingX = canvas.width / itemsPerRow;
+                survivors.slice(numTeams).forEach((p, i) => {
+                    let px = (spacingX / 2) + (i % itemsPerRow) * spacingX; 
+                    let py = poolY + 40 + Math.floor(i / itemsPerRow) * 35;
+                    ctx.save();
+                    if (p.picked) { ctx.globalAlpha = 0.2; } 
+                    drawFace(ctx, px, py, p, isMobile ? 1.5 : 2.0); 
+                    ctx.restore();
                 });
             }
         };
-
-        SpecialEvent.redrawDraft = drawDraft;
 
         const pickStep = () => {
             if (pool.length === 0) {
-                cancelAnimationFrame(animId);
+                isDrafting = false;
                 document.getElementById('draft-status').innerText = ((typeof Lang !== 'undefined' && Lang.current === 'vi') ? "CÁC ĐỘI HÌNH ĐÃ SẴN SÀNG!" : "SQUADS READY!");
-                document.getElementById('draft-status').style.color = "#27ae60";
+                document.getElementById('draft-status').style.color = "#0be881";
                 document.getElementById('btn-start-event').style.display = 'block';
-                drawDraft();
                 return;
             }
+            
             let randomIndex = Math.floor(Math.random() * pool.length);
             let pickedMember = pool[randomIndex];
             pickedMember.picked = true;
+            
             SpecialEvent.teams[pickingTeam].members.push(pickedMember);
+            SpecialEvent.teams[pickingTeam].flash = 1.0; 
+            SpecialEvent.teams[pickingTeam].floatTextY = 0; 
+            
             pool.splice(randomIndex, 1); 
             pickingTeam = (pickingTeam + 1) % numTeams;
-            drawDraft(); setTimeout(pickStep, 100); 
         };
-        drawDraft(); setTimeout(pickStep, 800);
+
+        const renderLoop = () => {
+            drawDraft();
+            
+            let now = Date.now();
+            if (isDrafting && now - lastPickTime > 350) {
+                pickStep();
+                lastPickTime = now;
+            }
+
+            if (isDrafting || SpecialEvent.teams.some(t => t.flash > 0)) {
+                animId = requestAnimationFrame(renderLoop);
+            }
+        };
+
+        animId = requestAnimationFrame(renderLoop);
     },
 
     startCompetition: () => {
@@ -196,6 +245,20 @@ var Competition = {
 
     frameCounter: 0,
     totalParticipants: 0,
+
+    // [THÊM MỚI] Hàm vẽ bóng/vòng sáng xanh dưới chân người chơi
+    drawPlayerHighlight: (ctx, x, y, scale) => {
+        ctx.save();
+        ctx.translate(x, y + (scale * 8)); // Dịch chuyển tâm xuống dưới chân
+        ctx.scale(2, 1); // Kéo giãn chiều ngang để tạo hình elip dẹt (phối cảnh top-down)
+        ctx.beginPath();
+        ctx.arc(0, 0, scale * 6, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(9, 132, 227, 0.6)"; // Xanh dương bán trong suốt
+        ctx.shadowColor = "#74b9ff"; // Phát sáng viền
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.restore();
+    },
 
     getRankScore: (rank) => {
         if (rank === -1) return 0;
@@ -259,7 +322,7 @@ var Competition = {
         let gameName = type.toUpperCase();
         let instructions = "";
         
-        let actionTxt = Competition.isPC ? (type === 'shoe' ? (isVi ? "NHẤP CHUỘT" : "CLICK MOUSE") : (isVi ? "NHẤN SPACE" : "PRESS SPACE")) : (isVi ? "CHáº M" : "TAP");
+        let actionTxt = Competition.isPC ? (type === 'shoe' ? (isVi ? "NHẤP CHUỘT" : "CLICK MOUSE") : (isVi ? "NHẤN SPACE" : "PRESS SPACE")) : (isVi ? "CHẠM" : "TAP");
         let moveTxt = Competition.isPC ? (isVi ? "PHÍM MŨI TÊN" : "ARROW KEYS") : "JOYSTICK";
 
         if (type === 'shoe') {
@@ -322,9 +385,6 @@ var Competition = {
 
         const triggerAction = (e) => {
             if (!Competition.active) return;
-            // #region agent log
-            fetch('http://127.0.0.1:7256/ingest/280aff8a-c6e9-4016-ab9e-2bd040e67081',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f233f'},body:JSON.stringify({sessionId:'6f233f',location:'event.js:triggerAction',message:'triggerAction',data:{type:Competition.type,handlesRedgreen:Competition.type==='redgreen'},hypothesisId:'H2',timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
             if (Competition.type === 'shoe' && Competition.shoeState && Competition.shoeState.phase === 'aiming') { 
                 Competition.shoeState.phase = 'flying'; Competition.calcShoeTrajectory(); 
             }
@@ -401,7 +461,7 @@ var Competition = {
         Competition.items = [];
 
         Competition.keys = { up: false, down: false, left: false, right: false, space: false };
-        Competition.mouseHeld = false; /* Chuột/giữ màn hình để chạy trong đèn xanh đèn đỏ */
+        Competition.mouseHeld = false; 
 
         const needJoystick = ['push', 'catch', 'dodge', 'redgreen'];
         if (typeof Game !== 'undefined') {
@@ -414,12 +474,6 @@ var Competition = {
         else if (Competition.type === 'catch') Competition.setupCatch();
         else if (Competition.type === 'dodge') Competition.setupDodge();
         else         if (Competition.type === 'redgreen') Competition.setupRedGreen();
-
-        // #region agent log
-        if (Competition.type === 'redgreen') {
-            fetch('http://127.0.0.1:7256/ingest/280aff8a-c6e9-4016-ab9e-2bd040e67081',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f233f'},body:JSON.stringify({sessionId:'6f233f',location:'event.js:startGame',message:'redgreen started',data:{isPC:Competition.isPC,hasTouch:'ontouchstart' in window},hypothesisId:'H3',timestamp:Date.now()})}).catch(()=>{});
-        }
-        // #endregion
 
         if(Competition.loopId) cancelAnimationFrame(Competition.loopId);
         Competition.loop();
@@ -496,9 +550,7 @@ var Competition = {
         Competition.loopId = requestAnimationFrame(Competition.loop);
     },
 
-    finishMatch: () => {
-        console.log("[FINISH_MATCH] Äang dá»n dáº¹p game:", Competition.type);
-        
+    finishMatch: () => {        
         if (!Competition.active) return; 
         Competition.active = false;
         Competition.mouseHeld = false;
@@ -506,7 +558,6 @@ var Competition = {
         if(Competition.loopId) { cancelAnimationFrame(Competition.loopId); Competition.loopId = null; }
         if(Competition.timerInterval) { clearInterval(Competition.timerInterval); Competition.timerInterval = null; }
         
-        // Gá»¡ bÃ n phÃ­m khi chÆ¡i xong
         window.removeEventListener('keydown', Competition.handleKeyDown);
         window.removeEventListener('keyup', Competition.handleKeyUp);
 
@@ -587,13 +638,13 @@ var Competition = {
                             ${roundResults.map((r, idx) => {
                                 let l = getSafeLeader(r.team);
                                 return `
-                                <div style="display:flex; padding:6px 2px; border-bottom:1px dashed #ccc; font-size:10px; color:#2f3542; background:${r.isMe ? '#ffeaa7' : 'transparent'}; font-weight:${r.isMe ? 'bold' : 'normal'}; align-items:center;">
+                                <div style="display:flex; padding:6px 2px; border-bottom:1px dashed #ccc; font-size:10px; color:#2f3542; background:${r.isMe ? '#ffeaa7' : 'transparent'}; align-items:center;">
                                     <div style="flex:2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center;">
                                         <span style="color:#aaa; margin-right:5px; font-size: 9px;">#${idx+1}</span>
                                         <div style="width: 16px; height: 16px; background-color: ${l.skin}; border-radius: 3px; margin-right: 5px; border: 1px solid #2f3542; position: relative; overflow: hidden; flex-shrink: 0;">
                                             <div style="width: 100%; height: 30%; background-color: ${l.hair}; position: absolute; top: 0;"></div>
                                         </div>
-                                        ${l.name.split(' ')[0]}
+                                        <span style="font-size: 10px; font-weight: normal; ${r.isMe ? 'color: #d63031;' : ''}">${l.name.split(' ')[0]}</span>
                                     </div>
                                     <div style="flex:1; text-align:center; color:#e17055; font-weight:bold; font-size:9px;">${r.raw}</div>
                                     <div style="flex:1; text-align:right; color:#00b894; font-weight:900;">+${r.score}</div>
@@ -604,7 +655,7 @@ var Competition = {
                     <div class="res-summary" style="flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center; background: rgba(47, 53, 66, 0.95); padding: 10px; border-radius: 8px; border: 3px solid #fff; color: #fff;">
                         <div style="margin-bottom: 15px; text-align:center;">
                             <div style="font-size:10px; opacity:0.8; text-transform: uppercase; margin-bottom: 5px;">${(typeof t === 'function') ? t("earned") : "EARNED"}</div>
-                            <div style="font-size:28px; font-weight:900; color:#ffeaa7; text-shadow: 2px 2px 0 #e67e22; line-height: 1;">+${myScore}</div>
+                            <div style="font-size:28px; font-weight:900; color:#ffeaa7; text-shadow: 2px 2px 0 #e67e22; line-height: normal; margin: 10px 0;">+${myScore}</div>
                             <div style="font-size:10px; font-weight:bold;">${(typeof t === 'function') ? t("pts") : "PTS"}</div>
                         </div>
                         <button id="btn-next-round" style="background:#ff7675; color:#fff; border:2px solid #fff; padding:10px 0; font-family:inherit; cursor:pointer; border-radius:20px; font-weight:900; font-size: 12px; text-transform: uppercase; width: 100%; box-shadow: 0 4px 0 #d63031; transition: all 0.1s;">
@@ -617,13 +668,6 @@ var Competition = {
             if (btn) {
                 btn.onclick = (App.currentRound < App.maxRounds) ? Competition.nextRound : Competition.finalizeEvent;
             }
-            // #region agent log
-            setTimeout(() => {
-                const rl = overlay.querySelector('.res-layout'); const rt = overlay.querySelector('.res-table');
-                const rlStyle = rl ? window.getComputedStyle(rl) : null;
-                fetch('http://127.0.0.1:7256/ingest/280aff8a-c6e9-4016-ab9e-2bd040e67081',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f233f'},body:JSON.stringify({sessionId:'6f233f',location:'event.js:roundResult',message:'round overlay',data:{vw:window.innerWidth,vh:window.innerHeight,layoutHeight:rlStyle?rlStyle.height:null,layoutOverflow:rlStyle?rlStyle.overflow:null,tableOverflow:rt?window.getComputedStyle(rt).overflow:null},hypothesisId:'H1',timestamp:Date.now()})}).catch(()=>{});
-            }, 150);
-            // #endregion
         }, 100);
     },
 
@@ -649,7 +693,7 @@ var Competition = {
 
                 return `
                 <div style="display:flex; padding:12px 5px; border-bottom:1px dashed #ccc; font-size:12px; color:#2f3542; background:${rowBg}; font-weight:${isMyTeam?'bold':'normal'}; align-items:center;">
-                    <div style="width: 40px; text-align:center; font-weight:900; color:${(i===0)?"#f1c40f":"#2f3542"}; font-size:14px;">${(i===0)?"ðŸ‘‘":`#${i+1}`}</div>
+                    <div style="width: 40px; text-align:center; font-weight:900; color:${(i===0)?"#f1c40f":"#2f3542"}; font-size:14px;">${(i===0)?"👑":`#${i+1}`}</div>
                     <div style="flex:2; display:flex; align-items:center; overflow:hidden;">
                         <div style="width: 20px; height: 20px; background-color: ${l.skin}; border-radius: 4px; margin-right: 8px; border: 1px solid #2f3542; position: relative; overflow: hidden; flex-shrink: 0;">
                             <div style="width: 100%; height: 30%; background-color: ${l.hair}; position: absolute; top: 0;"></div>
@@ -676,14 +720,14 @@ var Competition = {
                             <div style="flex:1; text-align:center;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "V1" : "G1"}</div>
                             <div style="flex:1; text-align:center;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "V2" : "G2"}</div>
                             <div style="flex:1; text-align:center;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "V3" : "G3"}</div>
-                            <div style="flex:1; text-align:right; padding-right:5px;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "Tá»”NG" : "TOTAL"}</div>
+                            <div style="flex:1; text-align:right; padding-right:5px;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "TỔNG" : "TOTAL"}</div>
                         </div>
                         <div style="flex-grow: 1; overflow-y: auto; padding-right:5px;">${tableRows}</div>
                     </div>
                     <div class="res-summary" style="flex: 1; display:flex; flex-direction:column; justify-content:center; align-items:center; background: rgba(47, 53, 66, 0.95); padding: 20px; border-radius: 12px; border: 4px solid #fff; color: #fff; box-shadow: 5px 5px 0 rgba(0,0,0,0.3);">
                         <div style="margin-bottom: 30px; text-align:center; width:100%;">
                             <div style="font-size:12px; opacity:0.8; text-transform: uppercase; margin-bottom: 10px; letter-spacing:1px; border-bottom:1px solid rgba(255,255,255,0.3); padding-bottom:5px;">${(typeof t === 'function') ? t("ranking_bonus") : "RANKING BONUS"}</div>
-                            <div style="font-size:36px; font-weight:900; color:#ffeaa7; text-shadow: 3px 3px 0 #e67e22; line-height: 1.2;">+${(App.lastEventBonus || 0).toLocaleString()}</div>
+                            <div style="font-size:36px; font-weight:900; color:#ffeaa7; text-shadow: 3px 3px 0 #e67e22; line-height: normal; margin: 15px 0;">+${(App.lastEventBonus || 0).toLocaleString()}</div>
                             <div style="font-size:14px; font-weight:bold; color:#f1c40f;">${(typeof Lang !== 'undefined' && Lang.current === 'vi') ? "VOTE" : "VOTES"}</div>
                         </div>
                         <button id="btn-close-event" style="background:#00b894; color:#fff; border:3px solid #fff; padding:15px 0; font-family:inherit; cursor:pointer; border-radius:30px; font-weight:900; font-size: 16px; text-transform: uppercase; width: 100%; box-shadow: 0 6px 0 #008c72; transition: all 0.1s;">${(typeof t === 'function') ? t("complete_event") : "COMPLETE EVENT"}</button>
@@ -737,11 +781,13 @@ var Competition = {
     loopShoe: (ctx, w, h) => { 
         let s = Competition.shoeState; ctx.fillStyle="#48dbfb"; ctx.fillRect(0,0,w,h); ctx.fillStyle="#2ecc71"; ctx.fillRect(0,h-60,w,60); 
         if(s.phase==='aiming') {
+            Competition.drawPlayerHighlight(ctx, 50, h-90, 3); // [THÊM MỚI]
             drawFace(ctx,50,h-90,Player,3); ctx.fillStyle="#555";ctx.fillRect(50,h/2-20,w-100,40); ctx.fillStyle="#fff";ctx.fillRect(50+s.barX,h/2-30,10,60);
             s.barX+=s.speed*s.dir;if(s.barX>w-110||s.barX<0)s.dir*=-1;
         } else {
             s.shoeX+=s.shoeVX; s.shoeY+=s.shoeVY; s.shoeVY+=0.5; s.rot+=0.2; s.distance=Math.min(100,(s.shoeX/w)*100);
             ctx.save();ctx.translate(s.shoeX,s.shoeY);ctx.rotate(s.rot); ctx.fillStyle="#d63031";ctx.fillRect(-10,-5,20,10);ctx.restore();
+            Competition.drawPlayerHighlight(ctx, 50, h-90, 3); // [THÊM MỚI]
             drawFace(ctx,50,h-90,Player,3); ctx.fillStyle="#2f3542";ctx.font="30px Arial";ctx.fillText(Math.floor(s.distance)+"m",w/2,h/2);
             if(s.shoeY>h-60) { 
                 let p = Competition.entities.find(e => e.isPlayer);
@@ -758,6 +804,7 @@ var Competition = {
         let allFinished=true; 
         Competition.entities.forEach(e=>{
             if(!e.finished){ allFinished=false; if(!e.isPlayer)e.x+=e.speed+(Math.random()*1.5); }
+            if(e.isPlayer) Competition.drawPlayerHighlight(ctx, e.x, e.y, 1.5); // [THÊM MỚI]
             drawFace(ctx,e.x,e.y,e.char,1.5);
             if(e.x>fX && !e.finished){ e.finished=true; e.x=fX+30; e.performance = Competition.frameCounter; }
         });
@@ -772,7 +819,9 @@ var Competition = {
             if(e.elim) return; alive++; last=e;
             if(e.isPlayer){e.vx+=Competition.joystick.vecX*0.8;e.vy+=Competition.joystick.vecY*0.8;}
             else{let t=Competition.entities.find(o=>!o.elim&&o!==e); if(t){let dx=t.x-e.x,dy=t.y-e.y,d=Math.hypot(dx,dy);if(d>0){e.vx+=(dx/d)*0.3;e.vy+=(dy/d)*0.3;}}}
-            e.vx*=0.92;e.vy*=0.92;e.x+=e.vx;e.y+=e.vy; drawFace(ctx,e.x,e.y,e.char,3.5);
+            e.vx*=0.92;e.vy*=0.92;e.x+=e.vx;e.y+=e.vy; 
+            if(e.isPlayer) Competition.drawPlayerHighlight(ctx, e.x, e.y, 3.5); // [THÊM MỚI]
+            drawFace(ctx,e.x,e.y,e.char,3.5);
             if(Math.hypot(e.x-cx,e.y-cy)>r){ e.elim=true; e.performance = Competition.eliminatedCount; Competition.eliminatedCount++; }
         });
         for(let i=0;i<Competition.entities.length;i++)for(let j=i+1;j<Competition.entities.length;j++){let a=Competition.entities[i],b=Competition.entities[j];if(a.elim||b.elim)continue;let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<60){let an=Math.atan2(dy,dx),f=3;let tx=Math.cos(an)*f,ty=Math.sin(an)*f;a.vx-=tx/a.mass;a.vy-=ty/a.mass;b.vx+=tx/b.mass;b.vy+=ty/b.mass;}}
@@ -787,7 +836,9 @@ var Competition = {
         Competition.entities.forEach(p=>{
             if(p.isPlayer){p.x+=Competition.joystick.vecX*5;p.y+=Competition.joystick.vecY*5;}
             else{let cl=null,md=9999;Competition.items.forEach(it=>{let d=Math.hypot(p.x-it.x,p.y-it.y);if(d<md){md=d;cl=it;}});if(cl){let dx=cl.x-p.x,dy=cl.y-p.y;if(md>0){p.x+=(dx/md)*3;p.y+=(dy/md)*3;}}}
-            p.x=Math.max(20,Math.min(w-20,p.x));p.y=Math.max(20,Math.min(h-20,p.y)); drawFace(ctx,p.x,p.y,p.char,3); ctx.fillStyle="#000";ctx.font="12px Arial";ctx.fillText(p.performance,p.x,p.y-40);
+            p.x=Math.max(20,Math.min(w-20,p.x));p.y=Math.max(20,Math.min(h-20,p.y)); 
+            if(p.isPlayer) Competition.drawPlayerHighlight(ctx, p.x, p.y, 3); // [THÊM MỚI]
+            drawFace(ctx,p.x,p.y,p.char,3); ctx.fillStyle="#000";ctx.font="12px Arial";ctx.fillText(p.performance,p.x,p.y-40);
             for(let i=Competition.items.length-1;i>=0;i--){if(Math.hypot(p.x-Competition.items[i].x,p.y-Competition.items[i].y)<40){Competition.items.splice(i,1);p.performance++;if(p.isPlayer){const el=document.getElementById('c-score');if(el)el.innerText=p.performance;}Competition.items.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4});}}
         });
     },
@@ -797,14 +848,16 @@ var Competition = {
         ctx.fillStyle="#4fc3f7";ctx.fillRect(0,0,w,h); 
         if(Math.random()<0.08) Competition.items.push({x:Math.random()*(w-40)+20,y:-40,type:Math.random()<0.3?'star':'bomb',speed:4+Math.random()*3});
         ctx.font="35px Arial";ctx.textAlign="center";
-        for(let i=Competition.items.length-1;i>=0;i--){let it=Competition.items[i];it.y+=it.speed;ctx.fillText(it.type==='star'?"\u{2B50}":"\u{1F243}",it.x,it.y);
+        for(let i=Competition.items.length-1;i>=0;i--){let it=Competition.items[i];it.y+=it.speed;ctx.fillText(it.type==='star'?"⭐":"💣",it.x,it.y);
             Competition.entities.forEach(p=>{if(Math.hypot(p.x-it.x,p.y-it.y)<60){if(it.type==='star')p.performance+=10;else p.performance=Math.max(0,p.performance-10);if(p.isPlayer){const el=document.getElementById('c-score');if(el)el.innerText=p.performance;}it.eaten=true;}});
             if(it.y>h+50||it.eaten)Competition.items.splice(i,1);
         }
         Competition.entities.forEach(p=>{
             if(p.isPlayer)p.x+=Competition.joystick.vecX*6;
             else{if(Math.random()<0.05)p.tx=Math.random()*w;if(p.tx)p.x+=(p.tx-p.x)*0.05;}
-            p.x=Math.max(30,Math.min(w-30,p.x)); drawFace(ctx,p.x,p.y,p.char,3); ctx.fillStyle="#000";ctx.font="12px Arial";ctx.fillText(p.performance,p.x,p.y-40);
+            p.x=Math.max(30,Math.min(w-30,p.x)); 
+            if(p.isPlayer) Competition.drawPlayerHighlight(ctx, p.x, p.y, 3); 
+            drawFace(ctx,p.x,p.y,p.char,3); ctx.fillStyle="#000";ctx.font="12px Arial";ctx.fillText(p.performance,p.x,p.y-40);
         });
     },
 
@@ -813,11 +866,7 @@ var Competition = {
         let s=Competition.rlState; s.timer++; if(s.timer>s.nextSwitch){s.isGreen=!s.isGreen;s.timer=0;s.nextSwitch=s.isGreen?(100+Math.random()*150):(60+Math.random()*60);}
         ctx.fillStyle=s.isGreen?"#a3e635":"#ef4444";ctx.fillRect(0,0,w,h); ctx.fillStyle="#fff";ctx.fillRect(0,50,w,20);
         ctx.font="40px 'Press Start 2P'";ctx.textAlign="center";ctx.fillText(s.isGreen?"RUN!":"STOP!",w/2,40);
-        // #region agent log
-        if(Competition.frameCounter===30){
-            fetch('http://127.0.0.1:7256/ingest/280aff8a-c6e9-4016-ab9e-2bd040e67081',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6f233f'},body:JSON.stringify({sessionId:'6f233f',location:'event.js:loopRedGreen',message:'vecY sample post-fix',data:{vecY:Competition.joystick.vecY,mouseHeld:Competition.mouseHeld,runId:'post-fix'},hypothesisId:'H4',timestamp:Date.now()})}).catch(()=>{});
-        }
-        // #endregion
+        
         let allDone = true;
         Competition.entities.forEach(e=>{
             if(e.finished||e.elim) return;
@@ -828,7 +877,10 @@ var Competition = {
                 if(runInput){e.y-=3;mv=true;}
             }
             else{if(s.isGreen){e.y-=(2+Math.random());mv=true;}else if(Math.random()<0.02){e.y-=1;mv=true;}}
+            
+            if(e.isPlayer) Competition.drawPlayerHighlight(ctx, e.x, e.y, 2.5); // [THÊM MỚI]
             drawFace(ctx,e.x,e.y,e.char,2.5);
+            
             if(!s.isGreen && mv){e.elim=true; ctx.fillText("\u274C",e.x,e.y);}
             if(e.y<50){e.finished=true; e.performance = Competition.frameCounter;}
         });
@@ -836,7 +888,6 @@ var Competition = {
     }
 };
 
-// Äáº£m báº£o Competition.keys tá»“n táº¡i
 Competition.keys = {};
 window.onkeydown = (e) => Competition.keys[e.key] = true;
 window.onkeyup = (e) => Competition.keys[e.key] = false;
