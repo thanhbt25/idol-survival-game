@@ -329,10 +329,13 @@ canvas {
     background: #74b9ff; padding: 20px; border: 4px solid #2f3542; border-radius: 15px;
     width: 90%; height: 70vh; overflow-y: auto;
 }
-#ranking-list {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;
-}
 
+#ranking-list {
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Nới rộng cột ra một chút cho thoáng */
+    gap: 15px;
+    padding: 10px;
+}
 
 #ranking-list .rank-card > div:first-child {
     font-size: 18px !important;    
@@ -364,6 +367,12 @@ canvas {
     justify-content: center;
     align-items: center;
 }
+#ranking-list .rank-card > div:first-child span {
+    font-size: 13px !important; 
+    font-weight: 900 !important;
+    padding-top: 2px;
+}
+
 .rank-card:hover {
     transform: translateY(-5px);
     border-color: var(--primary);
@@ -371,14 +380,57 @@ canvas {
 .rank-card.player { background: #ffeaa7; border-color: var(--primary); border-width: 3px; }
 .rank-card.eliminated { background: #b2bec3; opacity: 0.7; filter: grayscale(100%); }
         
+/* --- LƯỚI DANH SÁCH TRAINEE (CHỐNG ÉP THẺ, TỰ ĐỘNG XUỐNG DÒNG) --- */
 #npc-list-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr) !important;
-    gap: 12px;
-    overflow-y: auto;
-    flex-grow: 1;
-    padding: 10px;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important; /* Căn giữa toàn bộ danh sách */
+    gap: 20px !important;
+    padding: 20px !important;
+    overflow-y: auto !important;
+    height: 100% !important;
 }
+
+#npc-list-grid > div {
+    flex: 0 0 auto !important; /* KHÔNG CHO PHÉP thẻ tự động co nhỏ lại */
+    width: 180px !important;   /* Chiều rộng cố định to, rõ ràng */
+    min-height: 220px !important; 
+    
+    background: #fff;
+    border: 3px solid #2f3542;
+    border-radius: 12px;
+    box-shadow: 4px 6px 0 rgba(0,0,0,0.1);
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 10px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+#npc-list-grid > div:hover {
+    transform: translateY(-5px);
+    box-shadow: 6px 8px 0 rgba(0,0,0,0.15);
+    border-color: #74b9ff;
+}
+
+/* Tên Trainee */
+#npc-list-grid > div > div:nth-child(2) {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    margin-bottom: 8px !important;
+    color: #192a56 !important;
+}
+
+/* Chỉ số bên dưới */
+#npc-list-grid > div > div:last-child {
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    color: #2f3542 !important;
+}
+
 #bgm-toggle { position: absolute; top: 10px; left: 10px; z-index: 100; font-size: 8px; padding: 5px; }
 
 .stats-overlay {
@@ -1551,39 +1603,6 @@ canvas {
     to { transform: scale(1.05); }
 }
 
-@media (min-width: 1024px) {
-    #npc-list-grid {
-        /* TÄƒng sá»‘ lÆ°á»£ng cá»™t báº±ng cÃ¡ch giáº£m min-width cá»§a má»—i cá»™t */
-        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
-        
-        /* Giáº£m khoáº£ng cÃ¡ch giá»¯a cÃ¡c tháº» xuá»‘ng cá»±c nhá» */
-        gap: 6px; 
-        
-        /* CÄƒn giá»¯a grid trong mÃ n hÃ¬nh to */
-        max-width: 900px;
-        margin: 0 auto;
-        max-height: 75vh; /* TÄƒng vÃ¹ng nhÃ¬n tháº¥y trÃªn PC */
-    }
-
-    /* Thu nhá» tháº» card trÃªn PC */
-    .rank-card {
-        padding: 5px !important;      /* Giáº£m lá» trong */
-        min-height: auto !important;  /* Bá» chiá»u cao tá»‘i thiá»ƒu cá»©ng */
-        font-size: 0.8em;             /* Giáº£m cá»¡ chá»¯ */
-    }
-
-    /* Thu nhá» avatar trÃªn PC */
-    .rank-card > div:first-child {
-        width: 15px !important;       /* Avatar nhá» láº¡i */
-        height: 15px !important;
-    }
-    
-    /* áº¨n bá»›t thÃ´ng tin rÆ°á»m rÃ  náº¿u cáº§n, hoáº·c chá»‰nh font siÃªu nhá» */
-    .rank-card div {
-        line-height: 1.2;
-    }
-}
-
 /* --- SONG DRAFT PREVIEW OVERLAY --- */
 #song-draft-overlay {
     position: absolute; top: 0; left: 0; 
@@ -1600,7 +1619,6 @@ canvas {
     margin-bottom: 20px;
 }
 
-/* Grid chá»©a cÃ¡c bÃ i hÃ¡t */
 .song-grid {
     display: flex; 
     flex-wrap: wrap; /* Tá»± Ä‘á»™ng rá»›t dÃ²ng náº¿u thiáº¿u chá»— */
@@ -1613,7 +1631,6 @@ canvas {
     padding: 10px;
 }
 
-/* Tháº» bÃ i hÃ¡t */
 .song-card {
     background: #2f3542; 
     border: 3px solid #74b9ff; 
@@ -1669,7 +1686,6 @@ canvas {
     box-shadow: 0 3px 0 #b33939;
 }
 
-/* NÃºt Next to bá»± á»Ÿ dÆ°á»›i */
 .draft-action-btn {
     margin-top: 20px;
     background: #e84393;
@@ -1684,9 +1700,8 @@ canvas {
     box-shadow: 0 5px 0 #b33939;
 }
 
-/* Äiá»u chá»‰nh riÃªng cho PC (mÃ n hÃ¬nh rá»™ng hÆ¡n 768px) */
 @media (min-width: 768px) {
-    .song-card { width: 140px; } /* Tá»± dÃ n hÃ ng 5 bÃ i hÃ¡t cho Ä‘áº¹p */
+    .song-card { width: 140px; } 
     .song-title { font-size: 14px; }
 }
 
@@ -1696,28 +1711,23 @@ canvas {
     background: #000;
     border: 4px solid #fff;
     border-radius: 8px;
-    overflow: hidden; /* TrÃ¡nh cÃ¡c object bay ra ngoÃ i viá»n */
+    overflow: hidden; 
     touch-action: none;
     user-select: none;
     
-    /* Tá»± Ä‘á»™ng co giÃ£n nhÆ°ng tá»‘i Ä‘a chá»‰ to báº±ng mÃ n hÃ¬nh trá»« Ä‘i cÃ¡c viá»n */
     width: 95vw; 
-    max-width: 800px; /* Giá»›i háº¡n Ä‘á»™ rá»™ng tá»‘i Ä‘a trÃªn PC */
+    max-width: 800px; 
     
-    /* Giá»¯ tá»‰ lá»‡ khung hÃ¬nh (Aspect Ratio). TÃ¹y báº¡n chá»n: 
-       4:3 (hÆ¡i vuÃ´ng, há»£p PC), 16:9 (rá»™ng), hoáº·c tá»± do. á»ž Ä‘Ã¢y tÃ´i dÃ¹ng tá»‰ lá»‡ chuáº©n cho game 2D lÃ  4/3 */
     aspect-ratio: 4 / 3; 
-    max-height: 75vh; /* Äáº£m báº£o khÃ´ng bá»‹ lá»‘ chiá»u dá»c trÃªn mÃ n hÃ¬nh ngang */
+    max-height: 75vh; 
 }
 
-/* Äáº£m báº£o Canvas luÃ´n láº¥p Ä‘áº§y cÃ¡i Wrapper */
 .responsive-game-wrapper canvas {
     display: block;
     width: 100%;
     height: 100%;
 }
 
-/* MÃ n hÃ¬nh má» Ä‘Ã¨ lÃªn game (Overlay) */
 .game-overlay {
     position: absolute; 
     top: 0; 
@@ -1913,10 +1923,9 @@ body.lang-vi #interaction-modal { max-width: 760px; }
         flex: none !important;
     }
 
-    #final-team-score-list .rank-card .rank-avatar {
-        display: block !important; 
-        max-width: 100%;
-        height: auto;
+    #final-team-score-list .rank-card .rank-avatar,
+    #ranking-list .rank-card .rank-avatar {
+        display: none !important; 
     }
 
     .rank-card {
@@ -2027,3 +2036,54 @@ body.lang-vi #interaction-modal { max-width: 760px; }
     }
 }
 
+@media (min-width: 1024px) {
+    /* 1. Phóng to toàn bộ bảng chứa kết quả */
+    #result-screen .result-box {
+        width: 95% !important;
+        max-width: 1800px !important;
+        height: 85vh !important;
+        padding: 30px !important;
+    }
+
+    /* 2. Giãn khoảng cách các cột trong lưới để không bị dính vào nhau */
+    #ranking-list {
+        grid-template-columns: repeat(9, 1fr) !important; /* Hiển thị đủ 10 cột đẹp mắt */
+        gap: 20px !important;
+        padding: 20px !important;
+    }
+
+    /* 3. Tăng kích thước tổng thể của thẻ nhân vật */
+    .rank-card {
+        width: 100% !important; 
+        height: 220px !important; /* Tăng chiều cao để có chỗ cho chữ to */
+        gap: 10px !important; /* Tạo khoảng thở giữa các dòng chữ */
+    }
+
+    /* 4. Chữ TÊN NHÂN VẬT to hơn hẳn */
+    #ranking-list .rank-card > div:first-child {
+        font-size: 22px !important; 
+        line-height: 1.3 !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* 5. Chữ HẠNG (#1, #2...) và mũi tên to hơn một chút */
+    #ranking-list .rank-card > div:first-child span {
+        font-size: 16px !important; 
+        padding-bottom: 5px;
+        display: inline-block;
+    }
+
+    /* 6. ĐIỂM TỔNG (VD: 3.5k) to và đậm hơn */
+    #ranking-list .rank-card > div:nth-child(2) {
+        font-size: 20px !important; 
+        font-weight: 900 !important;
+        color: #2f3542 !important;
+    }
+
+    /* 7. ĐIỂM CỘNG (VD: +3.5k) to hơn để dễ nhìn */
+    #ranking-list .rank-card > div:last-child {
+        font-size: 14px !important; 
+        font-weight: bold !important;
+        margin-top: 5px !important;
+    }
+}
